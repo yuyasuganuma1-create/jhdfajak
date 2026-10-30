@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#000000">
   <title>現場撮影用Webアプリ</title>
   <style>
     * {
@@ -75,7 +76,7 @@
       gap: 12px;
       overflow-y: auto;
       border-left: 2px solid #333333;
-      padding-bottom: 120px; /* ボタン領域が被らないよう下部に余白を確保 */
+      padding-bottom: 120px; /* 下部100px浮かせのボタン領域分の余白 */
       position: relative;
     }
 
@@ -202,10 +203,10 @@
       cursor: pointer;
     }
 
-    /* 撮影ボタン群：下から100px浮かせた位置に配置 */
+    /* 撮影ボタン群（下部から100px上に固定配置） */
     .action-group {
       position: absolute;
-      bottom: 100px; /* 最下部から100ピクセル上に配置 */
+      bottom: 100px;
       left: 12px;
       right: 12px;
       display: flex;
@@ -297,6 +298,31 @@
   </div>
 
   <script>
+    // --- オフライン自動キャッシュ登録処理 (Service Worker インライン生成) ---
+    if ('serviceWorker' in navigator) {
+      const swCode = `
+        const CACHE_NAME = 'site-camera-v1';
+        self.addEventListener('install', (e) => {
+          e.waitUntil(
+            caches.open(CACHE_NAME).then((cache) => cache.addAll(['./', './index.html']))
+          );
+          self.skipWaiting();
+        });
+        self.addEventListener('activate', (e) => {
+          e.waitUntil(self.clients.claim());
+        });
+        self.addEventListener('fetch', (e) => {
+          e.respondWith(
+            caches.match(e.request).then((res) => res || fetch(e.request))
+          );
+        });
+      `;
+      const blob = new Blob([swCode], { type: 'text/javascript' });
+      const swUrl = URL.createObjectURL(blob);
+      navigator.serviceWorker.register(swUrl).catch(err => console.log('SW register failed:', err));
+    }
+
+    // --- アプリのメイン機能 ---
     const video = document.getElementById('webcam');
     const canvas = document.getElementById('capturedCanvas');
     const ctx = canvas.getContext('2d');
