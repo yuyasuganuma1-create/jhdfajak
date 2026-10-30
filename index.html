@@ -75,6 +75,8 @@
       gap: 12px;
       overflow-y: auto;
       border-left: 2px solid #333333;
+      padding-bottom: 120px; /* ボタン領域が被らないよう下部に余白を確保 */
+      position: relative;
     }
 
     .section-title {
@@ -132,6 +134,7 @@
       cursor: pointer;
     }
 
+    /* 属性タグボタングループ（削除ボタン付き） */
     .tag-group {
       display: flex;
       flex-wrap: wrap;
@@ -173,6 +176,11 @@
       cursor: pointer;
     }
 
+    .tag-del-btn:hover {
+      background-color: #dc2626;
+      color: #ffffff;
+    }
+
     .slider-group {
       background-color: #262626;
       padding: 8px 10px;
@@ -194,20 +202,26 @@
       cursor: pointer;
     }
 
+    /* 撮影ボタン群：下から100px浮かせた位置に配置 */
     .action-group {
+      position: absolute;
+      bottom: 100px; /* 最下部から100ピクセル上に配置 */
+      left: 12px;
+      right: 12px;
       display: flex;
       gap: 8px;
-      margin-top: auto;
+      z-index: 20;
     }
 
     .btn-main {
       flex: 1;
-      padding: 12px;
+      padding: 14px 10px;
       font-size: 1.2rem;
       font-weight: bold;
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
 
     .btn-shutter { background-color: #e63946; color: #ffffff; }
@@ -218,11 +232,12 @@
 <body>
 
   <div class="app-container">
+    <!-- 左側：カメラ表示エリア -->
     <div class="camera-panel">
       <video id="webcam" autoplay playsinline muted></video>
       <canvas id="capturedCanvas"></canvas>
 
-      <!-- 撮影前のリアルタイム表示（部位・状態の文字を除外） -->
+      <!-- 撮影前のリアルタイム表示 -->
       <div id="liveOverlay" class="live-overlay">
         <div id="liveTitle" class="live-title">第1工区 擁壁点検</div>
         <div id="liveTags" class="live-tags">擁壁 / 亀裂</div>
@@ -230,22 +245,27 @@
       </div>
     </div>
 
+    <!-- 右側：スリムな操作パネル -->
     <div class="control-panel">
+      <!-- 現場タイトル入力 -->
       <div>
         <div class="section-title">現場タイトル</div>
         <input type="text" id="siteTitle" class="input-box" value="第1工区 擁壁点検" placeholder="タイトルを入力" oninput="updatePreview()">
       </div>
 
+      <!-- 部位カテゴリ（削除ボタン付き） -->
       <div>
         <div class="section-title">■ 部位カテゴリ</div>
         <div id="buisContainer" class="tag-group"></div>
       </div>
 
+      <!-- 状態カテゴリ（削除ボタン付き） -->
       <div>
         <div class="section-title">■ 状態カテゴリ</div>
         <div id="jotaisContainer" class="tag-group"></div>
       </div>
 
+      <!-- カスタムタグ追加フォーム -->
       <div>
         <div class="section-title">＋ 属性タグを追加</div>
         <div class="add-tag-box">
@@ -258,16 +278,18 @@
         </div>
       </div>
 
+      <!-- 文字サイズ調整スライダー -->
       <div class="slider-group">
         <div class="slider-header">
           <span>合成文字サイズ</span>
-          <span id="fontSizeVal">32px</span>
+          <span id="fontSizeVal">48px</span>
         </div>
-        <input type="range" id="fontSizeSlider" class="slider-input" min="20" max="80" value="32" oninput="updateFontSize(this.value)">
+        <input type="range" id="fontSizeSlider" class="slider-input" min="20" max="150" value="48" oninput="updateFontSize(this.value)">
       </div>
 
+      <!-- 撮影アクションボタン（最下部から100px上に配置） -->
       <div class="action-group">
-        <button id="shutterBtn" class="btn-main btn-shutter" onclick="takePhoto()">📷 撮影</button>
+        <button id="shutterBtn" class="btn-main btn-shutter" onclick="takePhoto()">📷 撮影する</button>
         <button id="saveBtn" class="btn-main btn-save" onclick="saveAsJpeg()" style="display:none;">💾 JPEG保存</button>
         <button id="resetBtn" class="btn-main btn-reset" onclick="resetCamera()" style="display:none;">🔄 再撮影</button>
       </div>
@@ -283,7 +305,7 @@
     const resetBtn = document.getElementById('resetBtn');
     const liveOverlay = document.getElementById('liveOverlay');
 
-    let overlayFontSize = 32;
+    let overlayFontSize = 48;
 
     let tagData = {
       "部位": ["擁壁", "側溝", "法面", "橋脚"],
@@ -310,6 +332,7 @@
         const btnDel = document.createElement('button');
         btnDel.className = 'tag-del-btn';
         btnDel.innerText = '✕';
+        btnDel.title = '削除';
         btnDel.onclick = (e) => { e.stopPropagation(); deleteTag('部位', name); };
 
         wrapper.appendChild(btnText);
@@ -331,6 +354,7 @@
         const btnDel = document.createElement('button');
         btnDel.className = 'tag-del-btn';
         btnDel.innerText = '✕';
+        btnDel.title = '削除';
         btnDel.onclick = (e) => { e.stopPropagation(); deleteTag('状態', name); };
 
         wrapper.appendChild(btnText);
@@ -385,7 +409,6 @@
       document.getElementById('liveTitle').innerText = title;
       document.getElementById('liveTitle').style.fontSize = overlayFontSize + 'px';
 
-      // 「部位:」「状態:」の文字を排除し、タグ名のみを結合
       const tagsArr = [selectedTags["部位"], selectedTags["状態"]].filter(Boolean);
       const tagText = tagsArr.join(' / ');
 
@@ -415,7 +438,8 @@
       canvas.width = video.videoWidth || 1280;
       canvas.height = video.videoHeight || 720;
 
-      const scale = canvas.width / 1280;
+      const baseWidth = 1280;
+      const scale = Math.max(canvas.width / baseWidth, 1.0); 
       const drawFontSize = overlayFontSize * scale;
 
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -430,7 +454,7 @@
       let y = canvas.height - padding - (drawFontSize * 2.5);
 
       ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
-      ctx.fillRect(x - 10, y - drawFontSize, canvas.width * 0.55, drawFontSize * 3.5);
+      ctx.fillRect(x - (10 * scale), y - drawFontSize, canvas.width * 0.6, drawFontSize * 3.5);
 
       ctx.fillStyle = "#FFD700";
       ctx.font = `bold ${drawFontSize}px sans-serif`;
