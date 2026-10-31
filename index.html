@@ -203,7 +203,7 @@
       cursor: pointer;
     }
 
-    /* 撮影ボタン群（下部から100px上に固定配置） */
+    /* 撮影ボタン群（最下部から100px上に配置） */
     .action-group {
       position: absolute;
       bottom: 100px;
@@ -241,7 +241,7 @@
       <!-- 撮影前のリアルタイム表示 -->
       <div id="liveOverlay" class="live-overlay">
         <div id="liveTitle" class="live-title">第1工区 擁壁点検</div>
-        <div id="liveTags" class="live-tags">擁壁 / 亀裂</div>
+        <div id="liveTags" class="live-tags">主桁 / ひびわれ</div>
         <div id="liveDate" class="live-date">---</div>
       </div>
     </div>
@@ -274,7 +274,7 @@
             <option value="部位">部位</option>
             <option value="状態">状態</option>
           </select>
-          <input type="text" id="newTagName" placeholder="例: 排水管">
+          <input type="text" id="newTagName" placeholder="例: 擁壁">
           <button class="btn-add" onclick="addNewTag()">追加</button>
         </div>
       </div>
@@ -301,7 +301,7 @@
     // --- オフライン自動キャッシュ登録処理 (Service Worker インライン生成) ---
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'site-camera-v1';
+        const CACHE_NAME = 'site-camera-v2';
         self.addEventListener('install', (e) => {
           e.waitUntil(
             caches.open(CACHE_NAME).then((cache) => cache.addAll(['./', './index.html']))
@@ -333,14 +333,24 @@
 
     let overlayFontSize = 48;
 
+    // ご提示いただいた属性一覧を部位と状態にカテゴリ分け
     let tagData = {
-      "部位": ["擁壁", "側溝", "法面", "橋脚"],
-      "状態": ["亀裂", "漏水", "剥離", "A評価", "B評価"]
+      "部位": [
+        "主桁", "横桁", "床版", "橋脚", "A1橋台", "A2橋台", "支承", 
+        "高欄", "地覆", "舗装", "伸縮装置", "排水ます", "排水管", 
+        "添架物", "起点側", "終点側", "上流側", "下流側"
+      ],
+      "状態": [
+        "ひびわれ", "変形", "腐食", "滞水", "破断", "抜け落ち", 
+        "土砂詰まり", "路面の凹凸", "舗装の異常", "防食機能の劣化", 
+        "鉄筋露出", "漏水", "洗堀", "剥離", "うき", "欠損", 
+        "遊離石灰", "遊間の異常", "補修済み"
+      ]
     };
 
     let selectedTags = {
-      "部位": "擁壁",
-      "状態": "亀裂"
+      "部位": "主桁",
+      "状態": "ひびわれ"
     };
 
     function renderTags() {
@@ -460,15 +470,38 @@
       updatePreview();
     }
 
+    // 撮影処理（保存画像を確実に4:3比率に自動トリミング＋文字合成）
     function takePhoto() {
-      canvas.width = video.videoWidth || 1280;
-      canvas.height = video.videoHeight || 720;
+      const vWidth = video.videoWidth || 1280;
+      const vHeight = video.videoHeight || 720;
+
+      // 4:3の領域を中央切り出しで算出
+      let cropWidth, cropHeight, cropX, cropY;
+      const targetRatio = 4 / 3;
+      const currentRatio = vWidth / vHeight;
+
+      if (currentRatio > targetRatio) {
+        cropHeight = vHeight;
+        cropWidth = vHeight * targetRatio;
+        cropX = (vWidth - cropWidth) / 2;
+        cropY = 0;
+      } else {
+        cropWidth = vWidth;
+        cropHeight = vWidth / targetRatio;
+        cropX = 0;
+        cropY = (vHeight - cropHeight) / 2;
+      }
+
+      // キャンバスを4:3の解像度に設定
+      canvas.width = cropWidth;
+      canvas.height = cropHeight;
 
       const baseWidth = 1280;
       const scale = Math.max(canvas.width / baseWidth, 1.0); 
       const drawFontSize = overlayFontSize * scale;
 
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      // ビデオ領域から4:3でクロップしてキャンバスに描画
+      ctx.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
 
       const siteTitle = document.getElementById('siteTitle').value;
       const tagsArr = [selectedTags["部位"], selectedTags["状態"]].filter(Boolean);
@@ -479,17 +512,21 @@
       const x = padding;
       let y = canvas.height - padding - (drawFontSize * 2.5);
 
+      // 文字背景帯
       ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
-      ctx.fillRect(x - (10 * scale), y - drawFontSize, canvas.width * 0.6, drawFontSize * 3.5);
+      ctx.fillRect(x - (10 * scale), y - drawFontSize, canvas.width * 0.65, drawFontSize * 3.5);
 
+      // タイトル（金字）
       ctx.fillStyle = "#FFD700";
       ctx.font = `bold ${drawFontSize}px sans-serif`;
       ctx.fillText(siteTitle, x, y);
 
+      // タグ（白字・タグ名のみスッキリ表示）
       ctx.fillStyle = "#FFFFFF";
       ctx.font = `bold ${Math.round(drawFontSize * 0.85)}px sans-serif`;
       ctx.fillText(tagText, x, y + drawFontSize * 1.1);
 
+      // 日時（グレー）
       ctx.fillStyle = "#DDDDDD";
       ctx.font = `${Math.round(drawFontSize * 0.7)}px sans-serif`;
       ctx.fillText(dateStr, x, y + drawFontSize * 2.1);
