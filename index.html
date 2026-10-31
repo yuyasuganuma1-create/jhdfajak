@@ -254,13 +254,13 @@
         <input type="text" id="siteTitle" class="input-box" value="第1工区 擁壁点検" placeholder="タイトルを入力" oninput="updatePreview()">
       </div>
 
-      <!-- 部位カテゴリ（削除ボタン付き） -->
+      <!-- 部位カテゴリ（複数選択対応・削除ボタン付き） -->
       <div>
         <div class="section-title">■ 部位カテゴリ</div>
         <div id="buisContainer" class="tag-group"></div>
       </div>
 
-      <!-- 状態カテゴリ（削除ボタン付き） -->
+      <!-- 状態カテゴリ（複数選択対応・削除ボタン付き） -->
       <div>
         <div class="section-title">■ 状態カテゴリ</div>
         <div id="jotaisContainer" class="tag-group"></div>
@@ -274,7 +274,7 @@
             <option value="部位">部位</option>
             <option value="状態">状態</option>
           </select>
-          <input type="text" id="newTagName" placeholder="例: 擁壁">
+          <input type="text" id="newTagName" placeholder="例: 新規タグ">
           <button class="btn-add" onclick="addNewTag()">追加</button>
         </div>
       </div>
@@ -301,7 +301,7 @@
     // --- オフライン自動キャッシュ登録処理 (Service Worker インライン生成) ---
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'site-camera-v2';
+        const CACHE_NAME = 'site-camera-v4';
         self.addEventListener('install', (e) => {
           e.waitUntil(
             caches.open(CACHE_NAME).then((cache) => cache.addAll(['./', './index.html']))
@@ -333,37 +333,40 @@
 
     let overlayFontSize = 48;
 
-    // ご提示いただいた属性一覧を部位と状態にカテゴリ分け
+    // ご指定いただいたすべての属性一覧（部位と状態）を完全に網羅
     let tagData = {
       "部位": [
-        "主桁", "横桁", "床版", "橋脚", "A1橋台", "A2橋台", "支承", 
-        "高欄", "地覆", "舗装", "伸縮装置", "排水ます", "排水管", 
-        "添架物", "起点側", "終点側", "上流側", "下流側"
+        "排水ます", "伸縮装置", "上流側", "終点側", "起点側", "添架物", 
+        "舗装", "主桁", "排水管", "地覆", "A1橋台", "A2橋台", 
+        "高欄", "床版", "横桁", "支承", "下流側"
       ],
       "状態": [
-        "ひびわれ", "変形", "腐食", "滞水", "破断", "抜け落ち", 
+        "変形", "腐食", "ひびわれ", "滞水", "破断", "抜け落ち", 
         "土砂詰まり", "路面の凹凸", "舗装の異常", "防食機能の劣化", 
         "鉄筋露出", "漏水", "洗堀", "剥離", "うき", "欠損", 
         "遊離石灰", "遊間の異常", "補修済み"
       ]
     };
 
+    // 複数選択に対応（初期選択として最初のタグなどを指定）
     let selectedTags = {
-      "部位": "主桁",
-      "状態": "ひびわれ"
+      "部位": ["主桁"],
+      "状態": ["ひびわれ"]
     };
 
     function renderTags() {
+      // 部位のレンダリング
       const buisContainer = document.getElementById('buisContainer');
       buisContainer.innerHTML = '';
       tagData["部位"].forEach(name => {
+        const isSelected = selectedTags["部位"].includes(name);
         const wrapper = document.createElement('div');
-        wrapper.className = 'tag-wrapper' + (selectedTags["部位"] === name ? ' active' : '');
+        wrapper.className = 'tag-wrapper' + (isSelected ? ' active' : '');
 
         const btnText = document.createElement('button');
         btnText.className = 'tag-btn-text';
         btnText.innerText = name;
-        btnText.onclick = () => selectTag('部位', name);
+        btnText.onclick = () => toggleTag('部位', name);
 
         const btnDel = document.createElement('button');
         btnDel.className = 'tag-del-btn';
@@ -376,16 +379,18 @@
         buisContainer.appendChild(wrapper);
       });
 
+      // 状態のレンダリング
       const jotaisContainer = document.getElementById('jotaisContainer');
       jotaisContainer.innerHTML = '';
       tagData["状態"].forEach(name => {
+        const isSelected = selectedTags["状態"].includes(name);
         const wrapper = document.createElement('div');
-        wrapper.className = 'tag-wrapper' + (selectedTags["状態"] === name ? ' active' : '');
+        wrapper.className = 'tag-wrapper' + (isSelected ? ' active' : '');
 
         const btnText = document.createElement('button');
         btnText.className = 'tag-btn-text';
         btnText.innerText = name;
-        btnText.onclick = () => selectTag('状態', name);
+        btnText.onclick = () => toggleTag('状態', name);
 
         const btnDel = document.createElement('button');
         btnDel.className = 'tag-del-btn';
@@ -399,17 +404,20 @@
       });
     }
 
-    function selectTag(category, name) {
-      selectedTags[category] = name;
+    // タグのON/OFF（複数選択）切り替え
+    function toggleTag(category, name) {
+      if (selectedTags[category].includes(name)) {
+        selectedTags[category] = selectedTags[category].filter(item => item !== name);
+      } else {
+        selectedTags[category].push(name);
+      }
       renderTags();
       updatePreview();
     }
 
     function deleteTag(category, name) {
       tagData[category] = tagData[category].filter(item => item !== name);
-      if (selectedTags[category] === name) {
-        selectedTags[category] = tagData[category].length > 0 ? tagData[category][0] : '';
-      }
+      selectedTags[category] = selectedTags[category].filter(item => item !== name);
       renderTags();
       updatePreview();
     }
@@ -426,7 +434,7 @@
 
       if (!tagData[category].includes(val)) {
         tagData[category].push(val);
-        selectedTags[category] = val;
+        selectedTags[category].push(val); // 追加したタグを自動選択
         input.value = '';
         renderTags();
         updatePreview();
@@ -445,8 +453,8 @@
       document.getElementById('liveTitle').innerText = title;
       document.getElementById('liveTitle').style.fontSize = overlayFontSize + 'px';
 
-      const tagsArr = [selectedTags["部位"], selectedTags["状態"]].filter(Boolean);
-      const tagText = tagsArr.join(' / ');
+      const allSelected = [...selectedTags["部位"], ...selectedTags["状態"]];
+      const tagText = allSelected.join(' / ');
 
       document.getElementById('liveTags').innerText = tagText;
       document.getElementById('liveTags').style.fontSize = Math.round(overlayFontSize * 0.85) + 'px';
@@ -470,12 +478,11 @@
       updatePreview();
     }
 
-    // 撮影処理（保存画像を確実に4:3比率に自動トリミング＋文字合成）
+    // 撮影処理（4:3自動トリミング ＋ 複数選択タグ合成）
     function takePhoto() {
       const vWidth = video.videoWidth || 1280;
       const vHeight = video.videoHeight || 720;
 
-      // 4:3の領域を中央切り出しで算出
       let cropWidth, cropHeight, cropX, cropY;
       const targetRatio = 4 / 3;
       const currentRatio = vWidth / vHeight;
@@ -492,7 +499,6 @@
         cropY = (vHeight - cropHeight) / 2;
       }
 
-      // キャンバスを4:3の解像度に設定
       canvas.width = cropWidth;
       canvas.height = cropHeight;
 
@@ -500,33 +506,28 @@
       const scale = Math.max(canvas.width / baseWidth, 1.0); 
       const drawFontSize = overlayFontSize * scale;
 
-      // ビデオ領域から4:3でクロップしてキャンバスに描画
       ctx.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
 
       const siteTitle = document.getElementById('siteTitle').value;
-      const tagsArr = [selectedTags["部位"], selectedTags["状態"]].filter(Boolean);
-      const tagText = tagsArr.join(' / ');
+      const allSelected = [...selectedTags["部位"], ...selectedTags["状態"]];
+      const tagText = allSelected.join(' / ');
       const dateStr = getNowString();
 
       const padding = 20 * scale;
       const x = padding;
       let y = canvas.height - padding - (drawFontSize * 2.5);
 
-      // 文字背景帯
       ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
-      ctx.fillRect(x - (10 * scale), y - drawFontSize, canvas.width * 0.65, drawFontSize * 3.5);
+      ctx.fillRect(x - (10 * scale), y - drawFontSize, canvas.width * 0.7, drawFontSize * 3.5);
 
-      // タイトル（金字）
       ctx.fillStyle = "#FFD700";
       ctx.font = `bold ${drawFontSize}px sans-serif`;
       ctx.fillText(siteTitle, x, y);
 
-      // タグ（白字・タグ名のみスッキリ表示）
       ctx.fillStyle = "#FFFFFF";
       ctx.font = `bold ${Math.round(drawFontSize * 0.85)}px sans-serif`;
       ctx.fillText(tagText, x, y + drawFontSize * 1.1);
 
-      // 日時（グレー）
       ctx.fillStyle = "#DDDDDD";
       ctx.font = `${Math.round(drawFontSize * 0.7)}px sans-serif`;
       ctx.fillText(dateStr, x, y + drawFontSize * 2.1);
