@@ -66,40 +66,38 @@
     .live-tags { color: #ffffff; font-weight: bold; margin-top: 6px; line-height: 1.3; }
     .live-date { color: #dddddd; font-size: 0.85em; margin-top: 4px; }
 
-    /* 右側：スリムな操作パネル（上下分割レイアウト） */
+    /* 右側：スリムな操作パネル（グリッドで高さを厳密に制御） */
     .control-panel {
-      width: 330px;
+      width: 320px;
       background-color: #1a1a1a;
-      display: flex;
-      flex-direction: column;
-      border-left: 2px solid #333333;
+      display: grid;
+      grid-template-rows: 1fr auto; /* 上部：スクロールエリア、下部：ボタン固定 */
       height: 100vh;
-      position: relative;
+      border-left: 2px solid #333333;
     }
 
     /* スクロール可能な属性・入力エリア */
     .control-scroll-area {
-      flex: 1;
-      padding: 12px;
+      padding: 10px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
     .section-title {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: bold;
       color: #ffd700;
       border-bottom: 2px solid #ffd700;
       padding-bottom: 2px;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
     .input-box {
       width: 100%;
-      padding: 8px 10px;
-      font-size: 1.1rem;
+      padding: 6px 8px;
+      font-size: 1rem;
       font-weight: bold;
       border-radius: 6px;
       border: 2px solid #555555;
@@ -109,23 +107,24 @@
 
     .add-tag-box {
       display: flex;
-      gap: 6px;
-      margin-top: 6px;
+      gap: 4px;
+      margin-top: 4px;
     }
 
     .add-tag-box select {
-      padding: 6px;
+      padding: 4px;
       background-color: #2b2b2b;
       color: #ffffff;
       border: 2px solid #555555;
       border-radius: 6px;
       font-weight: bold;
+      font-size: 0.9rem;
     }
 
     .add-tag-box input {
       flex: 1;
-      padding: 6px 8px;
-      font-size: 0.95rem;
+      padding: 4px 6px;
+      font-size: 0.9rem;
       border-radius: 6px;
       border: 2px solid #555555;
       background-color: #2b2b2b;
@@ -133,7 +132,7 @@
     }
 
     .btn-add {
-      padding: 6px 12px;
+      padding: 4px 10px;
       background-color: #3b82f6;
       color: white;
       border: none;
@@ -142,11 +141,11 @@
       cursor: pointer;
     }
 
-    /* 属性タグボタングループ（削除ボタン付き） */
+    /* 属性タグボタングループ（コンパクト化） */
     .tag-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
     }
 
     .tag-wrapper {
@@ -164,8 +163,8 @@
     }
 
     .tag-btn-text {
-      padding: 8px 10px;
-      font-size: 1.05rem;
+      padding: 6px 8px;
+      font-size: 0.95rem;
       font-weight: bold;
       color: #ffffff;
       background: none;
@@ -174,8 +173,8 @@
     }
 
     .tag-del-btn {
-      padding: 8px 8px;
-      font-size: 0.85rem;
+      padding: 6px 6px;
+      font-size: 0.8rem;
       font-weight: bold;
       color: #ff6b6b;
       background: rgba(0, 0, 0, 0.2);
@@ -191,7 +190,7 @@
 
     .slider-group {
       background-color: #262626;
-      padding: 8px 10px;
+      padding: 6px 8px;
       border-radius: 6px;
       border: 1px solid #444444;
     }
@@ -199,31 +198,30 @@
     .slider-header {
       display: flex;
       justify-content: space-between;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: bold;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
 
     .slider-input {
       width: 100%;
-      height: 24px;
+      height: 20px;
       cursor: pointer;
     }
 
-    /* 撮影ボタン群（パネル下部に独立固定・かぶり無し） */
+    /* 撮影ボタン群（絶対に一番下に固定配置・かぶり皆無） */
     .action-group {
-      padding: 12px;
+      padding: 10px;
       background-color: #1a1a1a;
       border-top: 2px solid #333333;
       display: flex;
       gap: 8px;
-      z-index: 20;
     }
 
     .btn-main {
       flex: 1;
-      padding: 14px 10px;
-      font-size: 1.2rem;
+      padding: 12px 8px;
+      font-size: 1.1rem;
       font-weight: bold;
       border: none;
       border-radius: 8px;
@@ -262,13 +260,13 @@
           <input type="text" id="siteTitle" class="input-box" value="第1工区 擁壁点検" placeholder="タイトルを入力" oninput="updatePreview()">
         </div>
 
-        <!-- 部位カテゴリ（複数選択・削除付き） -->
+        <!-- 部位カテゴリ -->
         <div>
           <div class="section-title">■ 部位カテゴリ</div>
           <div id="buisContainer" class="tag-group"></div>
         </div>
 
-        <!-- 状態カテゴリ（複数選択・削除付き） -->
+        <!-- 状態カテゴリ -->
         <div>
           <div class="section-title">■ 状態カテゴリ</div>
           <div id="jotaisContainer" class="tag-group"></div>
@@ -297,7 +295,7 @@
         </div>
       </div>
 
-      <!-- 撮影アクションボタン（最下部に独立固定・重なりなし） -->
+      <!-- 撮影アクションボタン（最下部に完全固定） -->
       <div class="action-group">
         <button id="shutterBtn" class="btn-main btn-shutter" onclick="takePhoto()">📷 撮影する</button>
         <button id="saveBtn" class="btn-main btn-save" onclick="saveAsJpeg()" style="display:none;">💾 JPEG保存</button>
@@ -310,7 +308,7 @@
     // --- オフライン自動キャッシュ登録処理 (Service Worker インライン生成) ---
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'site-camera-v5';
+        const CACHE_NAME = 'site-camera-v6';
         self.addEventListener('install', (e) => {
           e.waitUntil(
             caches.open(CACHE_NAME).then((cache) => cache.addAll(['./', './index.html']))
@@ -331,7 +329,6 @@
       navigator.serviceWorker.register(swUrl).catch(err => console.log('SW register failed:', err));
     }
 
-    // --- アプリのメイン機能 ---
     const video = document.getElementById('webcam');
     const canvas = document.getElementById('capturedCanvas');
     const ctx = canvas.getContext('2d');
