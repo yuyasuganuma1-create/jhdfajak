@@ -39,7 +39,7 @@
       padding: 10px;
     }
 
-    /* 4:3比率を崩さず、親領域に最大収まるように配置 */
+    /* 4:3比率を完全に固定し、親領域に最大収まるように配置 */
     .camera-wrapper {
       position: relative;
       aspect-ratio: 4 / 3;
@@ -55,7 +55,8 @@
       border-radius: 4px;
     }
 
-    video, canvas {
+    /* videoとcanvasの描画ルールを完全一致させる */
+    video, #capturedCanvas, #simCanvas {
       position: absolute;
       top: 0;
       left: 0;
@@ -142,41 +143,3 @@
     .add-tag-box select {
       padding: 4px;
       background-color: #2b2b2b;
-      color: #ffffff;
-      border: 2px solid #555555;
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 0.85rem;
-    }
-
-    .add-tag-box input {
-      flex: 1;
-      padding: 4px 6px;
-      font-size: 0.85rem;
-      border-radius: 6px;
-      border: 2px solid #555555;
-      background-color: #2b2b2b;
-      color: #ffffff;
-      min-width: 0;
-    }
-
-    .btn-add {
-      padding: 4px 10px;
-      background-color: #3b82f6;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .tag-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .tag-wrapper {
-      display: inline-flex;
-      align-items
