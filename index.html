@@ -39,26 +39,25 @@
       padding: 10px;
     }
 
-    /* 外枠（黒板・操作領域に合わせた比率枠） */
     .camera-wrapper {
       position: relative;
       width: 100%;
       height: 100%;
-      background-color: #000000;
+      background-color: #111111;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
+      border-radius: 4px;
     }
 
-    /* ★ videoとcanvasで全く同一の表示・拡大ルールを適用 */
     video, #capturedCanvas, #simCanvas {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      object-fit: contain; /* はみ出しによる意図しない強制ズームを排除 */
+      object-fit: contain;
       background-color: #000000;
     }
 
@@ -101,6 +100,7 @@
       flex-direction: column;
       height: 100vh;
       border-left: 2px solid #333333;
+      z-index: 20;
     }
 
     .control-scroll-area {
@@ -327,26 +327,4 @@
       </div>
 
       <div class="action-group">
-        <button id="shutterBtn" class="btn-main btn-shutter" onclick="takePhoto()">📷 撮影する</button>
-        <button id="saveBtn" class="btn-main btn-save" onclick="saveAsJpeg()" style="display:none;">💾 保存</button>
-        <button id="resetBtn" class="btn-main btn-reset" onclick="resetCamera()" style="display:none;">🔄 再撮影</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const video = document.getElementById('webcam');
-    const simCanvas = document.getElementById('simCanvas');
-    const simCtx = simCanvas.getContext('2d');
-    const canvas = document.getElementById('capturedCanvas');
-    const ctx = canvas.getContext('2d');
-    const cameraWrapper = document.getElementById('cameraWrapper');
-    const shutterBtn = document.getElementById('shutterBtn');
-    const saveBtn = document.getElementById('saveBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const liveOverlay = document.getElementById('liveOverlay');
-
-    let previewFontSize = 24;
-    let isSimulation = false;
-
-    let tagData = {
+        <button id="shutterBtn" class="btn-main btn-shutter" onclick="takePhoto()">📷
