@@ -39,30 +39,27 @@
       padding: 10px;
     }
 
-    /* 4:3比率を完全に固定し、親領域に最大収まるように配置 */
+    /* 外枠（黒板・操作領域に合わせた比率枠） */
     .camera-wrapper {
       position: relative;
-      aspect-ratio: 4 / 3;
-      max-width: 100%;
-      max-height: 100%;
-      width: auto;
-      height: auto;
-      background-color: #111111;
+      width: 100%;
+      height: 100%;
+      background-color: #000000;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 4px;
     }
 
-    /* videoとcanvasの描画ルールを完全一致させる */
+    /* ★ videoとcanvasで全く同一の表示・拡大ルールを適用 */
     video, #capturedCanvas, #simCanvas {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain; /* はみ出しによる意図しない強制ズームを排除 */
+      background-color: #000000;
     }
 
     #capturedCanvas {
@@ -72,14 +69,14 @@
     /* 撮影前のリアルタイム表示 */
     .live-overlay {
       position: absolute;
-      bottom: 16px;
-      left: 16px;
+      bottom: 24px;
+      left: 24px;
       background-color: rgba(0, 0, 0, 0.78);
       border-left: 5px solid #ffd700;
       padding: 10px 14px;
       border-radius: 4px;
       pointer-events: none;
-      max-width: calc(100% - 32px);
+      max-width: calc(100% - 48px);
       z-index: 10;
       word-break: break-all;
     }
@@ -143,3 +140,213 @@
     .add-tag-box select {
       padding: 4px;
       background-color: #2b2b2b;
+      color: #ffffff;
+      border: 2px solid #555555;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 0.85rem;
+    }
+
+    .add-tag-box input {
+      flex: 1;
+      padding: 4px 6px;
+      font-size: 0.85rem;
+      border-radius: 6px;
+      border: 2px solid #555555;
+      background-color: #2b2b2b;
+      color: #ffffff;
+      min-width: 0;
+    }
+
+    .btn-add {
+      padding: 4px 10px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .tag-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag-wrapper {
+      display: inline-flex;
+      align-items: center;
+      background-color: #333333;
+      border: 2px solid #555555;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .tag-wrapper.active {
+      background-color: #0056b3;
+      border-color: #ffd700;
+    }
+
+    .tag-btn-text {
+      padding: 5px 8px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #ffffff;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    .tag-del-btn {
+      padding: 5px 6px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: #ff6b6b;
+      background: rgba(0, 0, 0, 0.2);
+      border: none;
+      border-left: 1px solid rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+    }
+
+    .slider-group {
+      background-color: #262626;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #444444;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .slider-input {
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .action-group {
+      padding: 10px;
+      background-color: #1a1a1a;
+      border-top: 2px solid #333333;
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-main {
+      flex: 1;
+      padding: 12px 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .btn-shutter { background-color: #e63946; color: #ffffff; }
+    .btn-save { background-color: #2a9d8f; color: #ffffff; }
+    .btn-reset { background-color: #6c757d; color: #ffffff; }
+
+    @media (max-width: 768px) {
+      .app-container {
+        flex-direction: column;
+      }
+      .camera-panel {
+        flex: none;
+        height: 52vh;
+        width: 100vw;
+        padding: 4px;
+      }
+      .control-panel {
+        flex: 1;
+        width: 100vw;
+        height: 48vh;
+        border-left: none;
+        border-top: 2px solid #333333;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <div class="camera-panel">
+      <div id="cameraWrapper" class="camera-wrapper">
+        <video id="webcam" autoplay playsinline muted></video>
+        <canvas id="simCanvas" style="display:none;"></canvas>
+        <canvas id="capturedCanvas"></canvas>
+
+        <div id="liveOverlay" class="live-overlay">
+          <div id="liveTitle" class="live-title">第1工区 擁壁点検</div>
+          <div id="liveTags" class="live-tags">主桁 / ひびわれ</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="control-panel">
+      <div class="control-scroll-area">
+        <div>
+          <div class="section-title">現場タイトル</div>
+          <input type="text" id="siteTitle" class="input-box" value="第1工区 擁壁点検" placeholder="タイトルを入力" oninput="updatePreview()">
+        </div>
+
+        <div>
+          <div class="section-title">■ 部位カテゴリ</div>
+          <div id="buisContainer" class="tag-group"></div>
+        </div>
+
+        <div>
+          <div class="section-title">■ 状態カテゴリ</div>
+          <div id="jotaisContainer" class="tag-group"></div>
+        </div>
+
+        <div>
+          <div class="section-title">＋ 属性タグを追加</div>
+          <div class="add-tag-box">
+            <select id="targetCategory">
+              <option value="部位">部位</option>
+              <option value="状態">状態</option>
+            </select>
+            <input type="text" id="newTagName" placeholder="新規タグ名">
+            <button class="btn-add" onclick="addNewTag()">追加</button>
+          </div>
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <span>合成文字サイズ</span>
+            <span id="fontSizeVal">24px</span>
+          </div>
+          <input type="range" id="fontSizeSlider" class="slider-input" min="14" max="44" value="24" oninput="updateFontSize(this.value)">
+        </div>
+      </div>
+
+      <div class="action-group">
+        <button id="shutterBtn" class="btn-main btn-shutter" onclick="takePhoto()">📷 撮影する</button>
+        <button id="saveBtn" class="btn-main btn-save" onclick="saveAsJpeg()" style="display:none;">💾 保存</button>
+        <button id="resetBtn" class="btn-main btn-reset" onclick="resetCamera()" style="display:none;">🔄 再撮影</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const video = document.getElementById('webcam');
+    const simCanvas = document.getElementById('simCanvas');
+    const simCtx = simCanvas.getContext('2d');
+    const canvas = document.getElementById('capturedCanvas');
+    const ctx = canvas.getContext('2d');
+    const cameraWrapper = document.getElementById('cameraWrapper');
+    const shutterBtn = document.getElementById('shutterBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const liveOverlay = document.getElementById('liveOverlay');
+
+    let previewFontSize = 24;
+    let isSimulation = false;
+
+    let tagData = {
