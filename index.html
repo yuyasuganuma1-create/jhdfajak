@@ -18,11 +18,17 @@
       width: 100vw;
       height: 100vh;
       overflow: hidden;
+    }
+    
+    /* 横持ち（ランドスケープ）専用の左右分割レイアウト */
+    .app-container {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
+      width: 100vw;
+      height: 100vh;
     }
 
-    /* 上部：カメラ表示エリア */
+    /* 左側：カメラ表示エリア */
     .camera-panel {
       flex: 1;
       position: relative;
@@ -31,7 +37,6 @@
       justify-content: center;
       align-items: center;
       overflow: hidden;
-      min-height: 40vh;
     }
 
     video, canvas {
@@ -47,51 +52,52 @@
     /* 撮影前のリアルタイム表示（左下） */
     .live-overlay {
       position: absolute;
-      bottom: 10px;
-      left: 10px;
+      bottom: 20px;
+      left: 20px;
       background-color: rgba(0, 0, 0, 0.75);
-      border-left: 4px solid #ffd700;
-      padding: 8px 12px;
-      border-radius: 4px;
+      border-left: 6px solid #ffd700;
+      padding: 12px 18px;
+      border-radius: 6px;
       pointer-events: none;
-      max-width: 85%;
+      max-width: 80%;
       z-index: 10;
     }
 
-    .live-title { color: #ffd700; font-weight: bold; line-height: 1.2; font-size: 0.9rem; }
-    .live-tags { color: #ffffff; font-weight: bold; margin-top: 2px; line-height: 1.2; font-size: 0.8rem; }
-    .live-date { color: #dddddd; font-size: 0.7em; margin-top: 2px; }
+    .live-title { color: #ffd700; font-weight: bold; line-height: 1.2; font-size: 1rem; }
+    .live-tags { color: #ffffff; font-weight: bold; margin-top: 6px; line-height: 1.3; font-size: 0.9rem; }
+    .live-date { color: #dddddd; font-size: 0.8em; margin-top: 4px; }
 
-    /* 下部：操作パネル */
+    /* 右側：操作パネル（上下分割グリッドでボタンが絶対に見切れない構造） */
     .control-panel {
-      height: 45vh;
+      width: 340px;
       background-color: #1a1a1a;
       display: grid;
       grid-template-rows: 1fr auto;
-      border-top: 2px solid #333333;
+      height: 100vh;
+      border-left: 2px solid #333333;
     }
 
     .control-scroll-area {
-      padding: 8px 12px;
+      padding: 12px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 12px;
     }
 
     .section-title {
-      font-size: 0.85rem;
+      font-size: 0.95rem;
       font-weight: bold;
       color: #ffd700;
       border-bottom: 2px solid #ffd700;
       padding-bottom: 2px;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
 
     .input-box {
       width: 100%;
-      padding: 6px 8px;
-      font-size: 0.95rem;
+      padding: 8px 10px;
+      font-size: 1rem;
       font-weight: bold;
       border-radius: 6px;
       border: 2px solid #555555;
@@ -101,24 +107,24 @@
 
     .add-tag-box {
       display: flex;
-      gap: 4px;
-      margin-top: 4px;
+      gap: 6px;
+      margin-top: 6px;
     }
 
     .add-tag-box select {
-      padding: 4px;
+      padding: 6px;
       background-color: #2b2b2b;
       color: #ffffff;
       border: 2px solid #555555;
       border-radius: 6px;
       font-weight: bold;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
     }
 
     .add-tag-box input {
       flex: 1;
-      padding: 4px 6px;
-      font-size: 0.85rem;
+      padding: 6px 8px;
+      font-size: 0.9rem;
       border-radius: 6px;
       border: 2px solid #555555;
       background-color: #2b2b2b;
@@ -126,20 +132,20 @@
     }
 
     .btn-add {
-      padding: 4px 10px;
+      padding: 6px 12px;
       background-color: #3b82f6;
       color: white;
       border: none;
       border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
     }
 
     .tag-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 5px;
+      gap: 6px;
     }
 
     .tag-wrapper {
@@ -157,8 +163,8 @@
     }
 
     .tag-btn-text {
-      padding: 5px 8px;
-      font-size: 0.85rem;
+      padding: 6px 10px;
+      font-size: 0.95rem;
       font-weight: bold;
       color: #ffffff;
       background: none;
@@ -167,8 +173,8 @@
     }
 
     .tag-del-btn {
-      padding: 5px 6px;
-      font-size: 0.75rem;
+      padding: 6px 8px;
+      font-size: 0.8rem;
       font-weight: bold;
       color: #ff6b6b;
       background: rgba(0, 0, 0, 0.2);
@@ -184,7 +190,7 @@
 
     .slider-group {
       background-color: #262626;
-      padding: 6px 8px;
+      padding: 8px 10px;
       border-radius: 6px;
       border: 1px solid #444444;
     }
@@ -192,19 +198,20 @@
     .slider-header {
       display: flex;
       justify-content: space-between;
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       font-weight: bold;
-      margin-bottom: 2px;
+      margin-bottom: 4px;
     }
 
     .slider-input {
       width: 100%;
-      height: 16px;
+      height: 20px;
       cursor: pointer;
     }
 
+    /* 撮影ボタン群（パネル下部に完全に独立固定） */
     .action-group {
-      padding: 8px 12px;
+      padding: 12px;
       background-color: #1a1a1a;
       border-top: 2px solid #333333;
       display: flex;
@@ -213,7 +220,7 @@
 
     .btn-main {
       flex: 1;
-      padding: 12px 6px;
+      padding: 14px 8px;
       font-size: 1.1rem;
       font-weight: bold;
       border: none;
@@ -229,69 +236,71 @@
 </head>
 <body>
 
-  <!-- 上部：カメラ表示エリア -->
-  <div class="camera-panel">
-    <video id="webcam" autoplay playsinline muted></video>
-    <canvas id="capturedCanvas"></canvas>
+  <div class="app-container">
+    <!-- 左側：カメラ表示エリア -->
+    <div class="camera-panel">
+      <video id="webcam" autoplay playsinline muted></video>
+      <canvas id="capturedCanvas"></canvas>
 
-    <!-- 撮影前のリアルタイム表示 -->
-    <div id="liveOverlay" class="live-overlay">
-      <div id="liveTitle" class="live-title">第1工区 擁壁点検</div>
-      <div id="liveTags" class="live-tags">主桁 / ひびわれ</div>
-      <div id="liveDate" class="live-date">---</div>
-    </div>
-  </div>
-
-  <!-- 下部：操作パネル -->
-  <div class="control-panel">
-    <div class="control-scroll-area">
-      <div>
-        <div class="section-title">現場タイトル</div>
-        <input type="text" id="siteTitle" class="input-box" value="第1工区 擁壁点検" placeholder="タイトルを入力" oninput="updatePreview()">
-      </div>
-
-      <div>
-        <div class="section-title">■ 部位カテゴリ</div>
-        <div id="buisContainer" class="tag-group"></div>
-      </div>
-
-      <div>
-        <div class="section-title">■ 状態カテゴリ</div>
-        <div id="jotaisContainer" class="tag-group"></div>
-      </div>
-
-      <div>
-        <div class="section-title">＋ 属性タグを追加</div>
-        <div class="add-tag-box">
-          <select id="targetCategory">
-            <option value="部位">部位</option>
-            <option value="状態">状態</option>
-          </select>
-          <input type="text" id="newTagName" placeholder="例: 新規タグ">
-          <button class="btn-add" onclick="addNewTag()">追加</button>
-        </div>
-      </div>
-
-      <div class="slider-group">
-        <div class="slider-header">
-          <span>合成文字サイズ</span>
-          <span id="fontSizeVal">48px</span>
-        </div>
-        <input type="range" id="fontSizeSlider" class="slider-input" min="20" max="150" value="48" oninput="updateFontSize(this.value)">
+      <!-- 撮影前のリアルタイム表示 -->
+      <div id="liveOverlay" class="live-overlay">
+        <div id="liveTitle" class="live-title">第1工区 擁壁点検</div>
+        <div id="liveTags" class="live-tags">主桁 / ひびわれ</div>
+        <div id="liveDate" class="live-date">---</div>
       </div>
     </div>
 
-    <div class="action-group">
-      <button id="shutterBtn" class="btn-main btn-shutter" onclick="takePhoto()">📷 撮影する</button>
-      <button id="saveBtn" class="btn-main btn-save" onclick="saveAsJpeg()" style="display:none;">💾 JPEG保存</button>
-      <button id="resetBtn" class="btn-main btn-reset" onclick="resetCamera()" style="display:none;">🔄 再撮影</button>
+    <!-- 右側：操作パネル -->
+    <div class="control-panel">
+      <div class="control-scroll-area">
+        <div>
+          <div class="section-title">現場タイトル</div>
+          <input type="text" id="siteTitle" class="input-box" value="第1工区 擁壁点検" placeholder="タイトルを入力" oninput="updatePreview()">
+        </div>
+
+        <div>
+          <div class="section-title">■ 部位カテゴリ</div>
+          <div id="buisContainer" class="tag-group"></div>
+        </div>
+
+        <div>
+          <div class="section-title">■ 状態カテゴリ</div>
+          <div id="jotaisContainer" class="tag-group"></div>
+        </div>
+
+        <div>
+          <div class="section-title">＋ 属性タグを追加</div>
+          <div class="add-tag-box">
+            <select id="targetCategory">
+              <option value="部位">部位</option>
+              <option value="状態">状態</option>
+            </select>
+            <input type="text" id="newTagName" placeholder="例: 新規タグ">
+            <button class="btn-add" onclick="addNewTag()">追加</button>
+          </div>
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <span>合成文字サイズ</span>
+            <span id="fontSizeVal">48px</span>
+          </div>
+          <input type="range" id="fontSizeSlider" class="slider-input" min="20" max="150" value="48" oninput="updateFontSize(this.value)">
+        </div>
+      </div>
+
+      <div class="action-group">
+        <button id="shutterBtn" class="btn-main btn-shutter" onclick="takePhoto()">📷 撮影する</button>
+        <button id="saveBtn" class="btn-main btn-save" onclick="saveAsJpeg()" style="display:none;">💾 JPEG保存</button>
+        <button id="resetBtn" class="btn-main btn-reset" onclick="resetCamera()" style="display:none;">🔄 再撮影</button>
+      </div>
     </div>
   </div>
 
   <script>
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'site-camera-v10';
+        const CACHE_NAME = 'site-camera-v11';
         self.addEventListener('install', (e) => {
           e.waitUntil(
             caches.open(CACHE_NAME).then((cache) => cache.addAll(['./', './index.html']))
