@@ -17,15 +17,16 @@
       color: #ffffff;
       width: 100vw;
       height: 100vh;
+      height: 100dvh;
       overflow: hidden;
     }
     
-    /* 横持ち専用：左にカメラ、右に操作パネル */
     .app-container {
       display: flex;
       flex-direction: row;
       width: 100vw;
       height: 100vh;
+      height: 100dvh;
     }
 
     /* 左側：カメラ表示エリア */
@@ -63,22 +64,23 @@
       z-index: 10;
     }
 
-    .live-title { color: #ffd700; font-weight: bold; line-height: 1.2; font-size: 0.9rem; }
-    .live-tags { color: #ffffff; font-weight: bold; margin-top: 4px; line-height: 1.2; font-size: 0.8rem; }
+    .live-title { color: #ffd700; font-weight: bold; line-height: 1.2; }
+    .live-tags { color: #ffffff; font-weight: bold; margin-top: 4px; line-height: 1.2; }
     .live-date { color: #dddddd; font-size: 0.75em; margin-top: 2px; }
 
-    /* 右側：操作パネル（ボタンが確実に見えるよう高さをグリッドで厳密制御） */
+    /* 右側：操作パネル（上下分割・ボタンが絶対に隠れない構造） */
     .control-panel {
       width: 320px;
       background-color: #1a1a1a;
       display: grid;
       grid-template-rows: 1fr auto;
       height: 100vh;
+      height: 100dvh;
       border-left: 2px solid #333333;
     }
 
     .control-scroll-area {
-      padding: 8px 10px;
+      padding: 8px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -99,8 +101,8 @@
       padding: 6px 8px;
       font-size: 0.9rem;
       font-weight: bold;
-      border-radius: 6px;
-      border: 2px solid #555555;
+      border-radius: 4px;
+      border: 1px solid #555555;
       background-color: #2b2b2b;
       color: #ffffff;
     }
@@ -108,25 +110,25 @@
     .add-tag-box {
       display: flex;
       gap: 4px;
-      margin-top: 4px;
+      margin-top: 2px;
     }
 
     .add-tag-box select {
       padding: 4px;
       background-color: #2b2b2b;
       color: #ffffff;
-      border: 2px solid #555555;
-      border-radius: 6px;
+      border: 1px solid #555555;
+      border-radius: 4px;
       font-weight: bold;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
     }
 
     .add-tag-box input {
       flex: 1;
       padding: 4px 6px;
-      font-size: 0.85rem;
-      border-radius: 6px;
-      border: 2px solid #555555;
+      font-size: 0.8rem;
+      border-radius: 4px;
+      border: 1px solid #555555;
       background-color: #2b2b2b;
       color: #ffffff;
     }
@@ -136,10 +138,10 @@
       background-color: #3b82f6;
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 4px;
       font-weight: bold;
       cursor: pointer;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
     }
 
     .tag-group {
@@ -152,8 +154,8 @@
       display: inline-flex;
       align-items: center;
       background-color: #333333;
-      border: 2px solid #555555;
-      border-radius: 6px;
+      border: 1px solid #555555;
+      border-radius: 4px;
       overflow: hidden;
     }
 
@@ -174,7 +176,7 @@
 
     .tag-del-btn {
       padding: 4px 5px;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: bold;
       color: #ff6b6b;
       background: rgba(0, 0, 0, 0.2);
@@ -191,25 +193,25 @@
     .slider-group {
       background-color: #262626;
       padding: 6px 8px;
-      border-radius: 6px;
+      border-radius: 4px;
       border: 1px solid #444444;
     }
 
     .slider-header {
       display: flex;
       justify-content: space-between;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: bold;
       margin-bottom: 2px;
     }
 
     .slider-input {
       width: 100%;
-      height: 16px;
+      height: 18px;
       cursor: pointer;
     }
 
-    /* 撮影ボタン群（絶対に隠れないようコンパクトかつ完全に最下部に固定） */
+    /* 撮影ボタン群（パネル最下部に完全固定） */
     .action-group {
       padding: 8px 10px;
       background-color: #1a1a1a;
@@ -221,12 +223,12 @@
     .btn-main {
       flex: 1;
       padding: 10px 4px;
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: bold;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
     }
 
     .btn-shutter { background-color: #e63946; color: #ffffff; }
@@ -282,10 +284,10 @@
 
         <div class="slider-group">
           <div class="slider-header">
-            <span>合成文字サイズ</span>
-            <span id="fontSizeVal">48px</span>
+            <span>文字サイズ調整</span>
+            <span id="fontSizeVal">24px</span>
           </div>
-          <input type="range" id="fontSizeSlider" class="slider-input" min="20" max="150" value="48" oninput="updateFontSize(this.value)">
+          <input type="range" id="fontSizeSlider" class="slider-input" min="14" max="60" value="24" oninput="updateFontSize(this.value)">
         </div>
       </div>
 
@@ -300,7 +302,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'site-camera-v13';
+        const CACHE_NAME = 'site-camera-v18';
         self.addEventListener('install', (e) => {
           e.waitUntil(
             caches.open(CACHE_NAME).then((cache) => cache.addAll(['./', './index.html']))
@@ -329,9 +331,12 @@
     const resetBtn = document.getElementById('resetBtn');
     const liveOverlay = document.getElementById('liveOverlay');
 
-    let overlayFontSize = 48;
+    let overlayFontSize = 24;
 
-    let tagData = {
+    const STORAGE_KEY = 'site_camera_tag_data_v1';
+    let savedTagData = localStorage.getItem(STORAGE_KEY);
+    
+    let tagData = savedTagData ? JSON.parse(savedTagData) : {
       "部位": [
         "排水ます", "伸縮装置", "上流側", "終点側", "起点側", "添架物", 
         "舗装", "主桁", "排水管", "地覆", "A1橋台", "A2橋台", 
@@ -349,6 +354,10 @@
       "部位": ["主桁"],
       "状態": ["ひびわれ"]
     };
+
+    function saveTagsToLocalStorage() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tagData));
+    }
 
     function renderTags() {
       const buisContainer = document.getElementById('buisContainer');
@@ -411,6 +420,7 @@
     function deleteTag(category, name) {
       tagData[category] = tagData[category].filter(item => item !== name);
       selectedTags[category] = selectedTags[category].filter(item => item !== name);
+      saveTagsToLocalStorage();
       renderTags();
       updatePreview();
     }
@@ -429,6 +439,7 @@
         tagData[category].push(val);
         selectedTags[category].push(val);
         input.value = '';
+        saveTagsToLocalStorage();
         renderTags();
         updatePreview();
       } else {
@@ -500,8 +511,9 @@
       canvas.width = outWidth;
       canvas.height = outHeight;
 
-      const baseWidth = 1280;
-      const scale = Math.max(canvas.width / baseWidth, 1.0); 
+      // ★ 画面上のビデオ表示幅と実際の保存画像幅の比率から、完全に同じバランスの文字サイズを算出
+      const displayWidth = video.clientWidth || 400;
+      const scale = cropWidth / displayWidth;
       const drawFontSize = overlayFontSize * scale;
 
       ctx.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
@@ -511,12 +523,12 @@
       const tagText = allSelected.join(' / ');
       const dateStr = getNowString();
 
-      const padding = 20 * scale;
+      const padding = 15 * scale;
       const x = padding;
       let y = canvas.height - padding - (drawFontSize * 2.5);
 
       ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
-      ctx.fillRect(x - (10 * scale), y - drawFontSize, canvas.width * 0.7, drawFontSize * 3.5);
+      ctx.fillRect(x - (8 * scale), y - drawFontSize, canvas.width * 0.75, drawFontSize * 3.5);
 
       ctx.fillStyle = "#FFD700";
       ctx.font = `bold ${drawFontSize}px sans-serif`;
