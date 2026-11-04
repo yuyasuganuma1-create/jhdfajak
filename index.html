@@ -327,4 +327,399 @@
       </div>
 
       <div class="action-group">
-        <button id="shutterBtn" class="btn-main btn-shutter" onclick="takePhoto()">📷
+        <button id="shutterBtn" class="btn-main btn-shutter" onclick="takePhoto()">📷 撮影する</button>
+        <button id="saveBtn" class="btn-main btn-save" onclick="saveAsJpeg()" style="display:none;">💾 保存</button>
+        <button id="resetBtn" class="btn-main btn-reset" onclick="resetCamera()" style="display:none;">🔄 再撮影</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const video = document.getElementById('webcam');
+    const simCanvas = document.getElementById('simCanvas');
+    const simCtx = simCanvas.getContext('2d');
+    const canvas = document.getElementById('capturedCanvas');
+    const ctx = canvas.getContext('2d');
+    const cameraWrapper = document.getElementById('cameraWrapper');
+    const shutterBtn = document.getElementById('shutterBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const liveOverlay = document.getElementById('liveOverlay');
+
+    let previewFontSize = 24;
+    let isSimulation = false;
+    let cameraReady = false;
+
+    const tagData = {
+      "部位": [
+        "排水ます", "伸縮装置", "上流側", "終点側", "起点側", "添架物", 
+        "舗装", "主桁", "排水管", "地覆", "A1橋台", "A2橋台", 
+        "高欄", "床版", "横桁", "支承", "下流側"
+      ],
+      "状態": [
+        "変形", "腐食", "ひびわれ", "滞水", "破断", "抜け落ち", 
+        "土砂詰まり", "路面の凹凸", "舗装の異常", "防食機能の劣化", 
+        "鉄筋露出", "漏水", "洗堀", "剥離", "うき", "欠損", 
+        "遊離石灰", "遊間の異常", "補修済み"
+      ]
+    };
+
+    const selectedTags = {
+      "部位": ["主桁"],
+      "状態": ["ひびわれ"]
+    };
+
+    function renderTags() {
+      const buisContainer = document.getElementById('buisContainer');
+      const jotaisContainer = document.getElementById('jotaisContainer');
+      if (!buisContainer || !jotaisContainer) return;
+
+      buisContainer.innerHTML = '';
+      tagData["部位"].forEach(name => {
+        const isSelected = selectedTags["部位"].includes(name);
+        const wrapper = document.createElement('div');
+        wrapper.className = 'tag-wrapper' + (isSelected ? ' active' : '');
+
+        const btnText = document.createElement('button');
+        btnText.className = 'tag-btn-text';
+        btnText.innerText = name;
+        btnText.onclick = () => toggleTag('部位', name);
+
+        const btnDel = document.createElement('button');
+        btnDel.className = 'tag-del-btn';
+        btnDel.innerText = '✕';
+        btnDel.title = '削除';
+        btnDel.onclick = (e) => { e.stopPropagation(); deleteTag('部位', name); };
+
+        wrapper.appendChild(btnText);
+        wrapper.appendChild(btnDel);
+        buisContainer.appendChild(wrapper);
+      });
+
+      jotaisContainer.innerHTML = '';
+      tagData["状態"].forEach(name => {
+        const isSelected = selectedTags["状態"].includes(name);
+        const wrapper = document.createElement('div');
+        wrapper.className = 'tag-wrapper' + (isSelected ? ' active' : '');
+
+        const btnText = document.createElement('button');
+        btnText.className = 'tag-btn-text';
+        btnText.innerText = name;
+        btnText.onclick = () => toggleTag('状態', name);
+
+        const btnDel = document.createElement('button');
+        btnDel.className = 'tag-del-btn';
+        btnDel.innerText = '✕';
+        btnDel.title = '削除';
+        btnDel.onclick = (e) => { e.stopPropagation(); deleteTag('状態', name); };
+
+        wrapper.appendChild(btnText);
+        wrapper.appendChild(btnDel);
+        jotaisContainer.appendChild(wrapper);
+      });
+    }
+
+    function toggleTag(category, name) {
+      if (selectedTags[category].includes(name)) {
+        selectedTags[category] = selectedTags[category].filter(item => item !== name);
+      } else {
+        selectedTags[category].push(name);
+      }
+      renderTags();
+      updatePreview();
+    }
+
+    function deleteTag(category, name) {
+      tagData[category] = tagData[category].filter(item => item !== name);
+      selectedTags[category] = selectedTags[category].filter(item => item !== name);
+      renderTags();
+      updatePreview();
+    }
+
+    function addNewTag() {
+      const category = document.getElementById('targetCategory').value;
+      const input = document.getElementById('newTagName');
+      const val = input.value.trim();
+
+      if (!val) {
+        alert("タグ名を入力してください。");
+        return;
+      }
+
+      if (!tagData[category].includes(val)) {
+        tagData[category].push(val);
+        selectedTags[category].push(val);
+        input.value = '';
+        renderTags();
+        updatePreview();
+      } else {
+        alert("すでに存在するタグ名です。");
+      }
+    }
+
+    function updatePreview() {
+      const title = document.getElementById('siteTitle').value || '';
+      const liveTitleEl = document.getElementById('liveTitle');
+      const liveTagsEl = document.getElementById('liveTags');
+
+      if (liveTitleEl) {
+        liveTitleEl.innerText = title;
+        liveTitleEl.style.fontSize = previewFontSize + 'px';
+      }
+
+      if (liveTagsEl) {
+        const allSelected = [...selectedTags["部位"], ...selectedTags["状態"]];
+        liveTagsEl.innerText = allSelected.join(' / ');
+        liveTagsEl.style.fontSize = Math.round(previewFontSize * 0.85) + 'px';
+      }
+    }
+
+    function updateFontSize(val) {
+      previewFontSize = parseInt(val, 10);
+      document.getElementById('fontSizeVal').innerText = val + 'px';
+      updatePreview();
+    }
+
+    function startSimulationMode() {
+      isSimulation = true;
+      cameraReady = true;
+      video.style.display = 'none';
+      simCanvas.style.display = 'block';
+      simCanvas.width = 1280;
+      simCanvas.height = 960;
+
+      function renderSim() {
+        simCtx.fillStyle = '#4a5568';
+        simCtx.fillRect(0, 0, 1280, 960);
+
+        simCtx.strokeStyle = '#2d3748';
+        simCtx.lineWidth = 4;
+        for (let i = 160; i < 1280; i += 160) {
+          simCtx.beginPath();
+          simCtx.moveTo(i, 0);
+          simCtx.lineTo(i, 960);
+          simCtx.stroke();
+        }
+        for (let j = 160; j < 960; j += 160) {
+          simCtx.beginPath();
+          simCtx.moveTo(0, j);
+          simCtx.lineTo(1280, j);
+          simCtx.stroke();
+        }
+
+        simCtx.strokeStyle = '#1a202c';
+        simCtx.lineWidth = 6;
+        simCtx.beginPath();
+        simCtx.moveTo(400, 250);
+        simCtx.lineTo(500, 380);
+        simCtx.lineTo(480, 520);
+        simCtx.lineTo(600, 720);
+        simCtx.stroke();
+
+        simCtx.fillStyle = '#f6ad55';
+        simCtx.font = 'bold 32px sans-serif';
+        simCtx.fillText('【現場映像シミュレーション中】', 40, 60);
+      }
+      renderSim();
+    }
+
+    function startCamera() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        startSimulationMode();
+        return;
+      }
+
+      navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+        audio: false
+      }).then(stream => {
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+          video.play().then(() => {
+            cameraReady = true;
+          }).catch(() => {
+            cameraReady = true;
+          });
+        };
+      }).catch(() => {
+        // 外カメラ取得失敗時はインカメラを試行
+        navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+          .then(stream => {
+            video.srcObject = stream;
+            video.onloadedmetadata = () => {
+              video.play().then(() => {
+                cameraReady = true;
+              }).catch(() => {
+                cameraReady = true;
+              });
+            };
+          })
+          .catch(() => {
+            // カメラ不可環境（ブラウザ制限・file://など）では即座にテスト映像へ移行
+            startSimulationMode();
+          });
+      });
+    }
+
+    function wrapText(context, text, maxWidth) {
+      const words = text.split('');
+      const lines = [];
+      let currentLine = '';
+
+      for (let i = 0; i < words.length; i++) {
+        const testLine = currentLine + words[i];
+        const metrics = context.measureText(testLine);
+        if (metrics.width > maxWidth && i > 0) {
+          lines.push(currentLine);
+          currentLine = words[i];
+        } else {
+          currentLine = testLine;
+        }
+      }
+      if (currentLine) lines.push(currentLine);
+      return lines;
+    }
+
+    function drawOverlayText(scale) {
+      const title = document.getElementById('siteTitle').value || '';
+      const allSelected = [...selectedTags["部位"], ...selectedTags["状態"]];
+      const tagText = allSelected.join(' / ');
+
+      const titleFontSize = Math.round(previewFontSize * scale);
+      const tagFontSize = Math.round(titleFontSize * 0.85);
+
+      const margin = 24 * scale;
+      const padding = 12 * scale;
+      const borderLeftWidth = 5 * scale;
+      const maxBoxWidth = canvas.width - (margin * 2);
+      const textAvailableWidth = maxBoxWidth - (padding * 2) - borderLeftWidth;
+
+      ctx.font = `bold ${titleFontSize}px sans-serif`;
+      const titleLines = title ? wrapText(ctx, title, textAvailableWidth) : [];
+
+      ctx.font = `bold ${tagFontSize}px sans-serif`;
+      const tagLines = tagText ? wrapText(ctx, tagText, textAvailableWidth) : [];
+
+      const titleLineHeight = titleFontSize * 1.25;
+      const tagLineHeight = tagFontSize * 1.3;
+      const titleTotalHeight = titleLines.length * titleLineHeight;
+      const tagTotalHeight = tagLines.length * tagLineHeight;
+      const spacing = (titleLines.length && tagLines.length) ? (4 * scale) : 0;
+
+      const contentHeight = titleTotalHeight + spacing + tagTotalHeight;
+      const boxHeight = contentHeight + (padding * 2);
+
+      let maxLineWidth = 0;
+      ctx.font = `bold ${titleFontSize}px sans-serif`;
+      titleLines.forEach(l => {
+        const w = ctx.measureText(l).width;
+        if (w > maxLineWidth) maxLineWidth = w;
+      });
+      ctx.font = `bold ${tagFontSize}px sans-serif`;
+      tagLines.forEach(l => {
+        const w = ctx.measureText(l).width;
+        if (w > maxLineWidth) maxLineWidth = w;
+      });
+
+      const boxWidth = Math.min(maxBoxWidth, maxLineWidth + (padding * 2) + borderLeftWidth + (8 * scale));
+      const boxX = margin;
+      const boxY = canvas.height - margin - boxHeight;
+
+      ctx.fillStyle = "rgba(0, 0, 0, 0.78)";
+      ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+
+      ctx.fillStyle = "#ffd700";
+      ctx.fillRect(boxX, boxY, borderLeftWidth, boxHeight);
+
+      let currentY = boxY + padding;
+      const textStartX = boxX + borderLeftWidth + padding;
+
+      if (titleLines.length > 0) {
+        ctx.fillStyle = "#ffd700";
+        ctx.font = `bold ${titleFontSize}px sans-serif`;
+        ctx.textBaseline = "top";
+        titleLines.forEach(line => {
+          ctx.fillText(line, textStartX, currentY);
+          currentY += titleLineHeight;
+        });
+      }
+
+      currentY += spacing;
+
+      if (tagLines.length > 0) {
+        ctx.fillStyle = "#ffffff";
+        ctx.font = `bold ${tagFontSize}px sans-serif`;
+        ctx.textBaseline = "top";
+        tagLines.forEach(line => {
+          ctx.fillText(line, textStartX, currentY);
+          currentY += tagLineHeight;
+        });
+      }
+    }
+
+    async function takePhoto() {
+      if (!cameraReady) {
+        alert("カメラの起動準備中です。数秒待ってから撮影してください。");
+        return;
+      }
+
+      const sourceElement = isSimulation ? simCanvas : video;
+      const srcWidth = isSimulation ? simCanvas.width : (video.videoWidth || 1280);
+      const srcHeight = isSimulation ? simCanvas.height : (video.videoHeight || 960);
+
+      canvas.width = srcWidth;
+      canvas.height = srcHeight;
+      ctx.drawImage(sourceElement, 0, 0, srcWidth, srcHeight);
+
+      const displayWidth = cameraWrapper.clientWidth || 640;
+      const scale = canvas.width / displayWidth;
+      drawOverlayText(scale);
+
+      video.style.display = 'none';
+      simCanvas.style.display = 'none';
+      liveOverlay.style.display = 'none';
+      canvas.style.display = 'block';
+
+      shutterBtn.style.display = 'none';
+      saveBtn.style.display = 'block';
+      resetBtn.style.display = 'block';
+    }
+
+    function resetCamera() {
+      canvas.style.display = 'none';
+      if (isSimulation) {
+        simCanvas.style.display = 'block';
+      } else {
+        video.style.display = 'block';
+      }
+      liveOverlay.style.display = 'block';
+
+      shutterBtn.style.display = 'block';
+      saveBtn.style.display = 'none';
+      resetBtn.style.display = 'none';
+    }
+
+    function saveAsJpeg() {
+      const link = document.createElement('a');
+      const now = new Date();
+      const timeStamp = now.getFullYear() +
+        String(now.getMonth() + 1).padStart(2, '0') +
+        String(now.getDate()).padStart(2, '0') + "_" +
+        String(now.getHours()).padStart(2, '0') +
+        String(now.getMinutes()).padStart(2, '0') +
+        String(now.getSeconds()).padStart(2, '0');
+
+      link.download = `site_photo_${timeStamp}.jpg`;
+      link.href = canvas.toDataURL('image/jpeg', 0.95);
+      link.click();
+    }
+
+    // DOM構築完了時に確実にUIを初期化
+    document.addEventListener('DOMContentLoaded', () => {
+      renderTags();
+      updatePreview();
+      startCamera();
+    });
+  </script>
+</body>
+</html>
