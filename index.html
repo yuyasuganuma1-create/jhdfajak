@@ -12,14 +12,12 @@
       padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    html, body {
+    body {
       background-color: #000000;
       color: #ffffff;
-      width: 100vw;
       height: 100vh;
-      height: 100dvh;
+      width: 100vw;
       overflow: hidden;
-      position: fixed;
     }
     
     .app-container {
@@ -27,7 +25,6 @@
       flex-direction: row;
       width: 100vw;
       height: 100vh;
-      height: 100dvh;
     }
 
     /* 左側：カメラ表示エリア */
@@ -54,110 +51,107 @@
     /* 撮影前のリアルタイム表示（左下） */
     .live-overlay {
       position: absolute;
-      bottom: 10px;
-      left: 10px;
+      bottom: 20px;
+      left: 20px;
       background-color: rgba(0, 0, 0, 0.75);
-      border-left: 4px solid #ffd700;
-      padding: 6px 10px;
-      border-radius: 4px;
+      border-left: 6px solid #ffd700;
+      padding: 12px 18px;
+      border-radius: 6px;
       pointer-events: none;
       max-width: 80%;
       z-index: 10;
     }
 
-    .live-title { color: #ffd700; font-weight: bold; line-height: 1.2; font-size: 0.85rem; }
-    .live-tags { color: #ffffff; font-weight: bold; margin-top: 2px; line-height: 1.2; font-size: 0.75rem; }
-    .live-date { color: #dddddd; font-size: 0.65em; margin-top: 2px; }
+    .live-title { color: #ffd700; font-weight: bold; line-height: 1.2; }
+    .live-tags { color: #ffffff; font-weight: bold; margin-top: 6px; line-height: 1.3; }
+    .live-date { color: #dddddd; font-size: 0.85em; margin-top: 4px; }
 
-    /* 右側：操作パネル（高さ100%固定・Flexboxでボタンエリアを絶対に押し出されない構造） */
+    /* 右側：スリムな操作パネル */
     .control-panel {
-      width: 300px;
+      width: 320px;
       background-color: #1a1a1a;
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-rows: 1fr auto;
       height: 100vh;
-      height: 100dvh;
       border-left: 2px solid #333333;
     }
 
     .control-scroll-area {
-      flex: 1;
-      padding: 6px;
+      padding: 10px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 10px;
     }
 
     .section-title {
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       font-weight: bold;
       color: #ffd700;
-      border-bottom: 1px solid #ffd700;
-      padding-bottom: 1px;
-      margin-bottom: 3px;
+      border-bottom: 2px solid #ffd700;
+      padding-bottom: 2px;
+      margin-bottom: 4px;
     }
 
     .input-box {
       width: 100%;
-      padding: 4px 6px;
-      font-size: 0.85rem;
+      padding: 6px 8px;
+      font-size: 1rem;
       font-weight: bold;
-      border-radius: 4px;
-      border: 1px solid #555555;
+      border-radius: 6px;
+      border: 2px solid #555555;
       background-color: #2b2b2b;
       color: #ffffff;
     }
 
     .add-tag-box {
       display: flex;
-      gap: 3px;
-      margin-top: 2px;
+      gap: 4px;
+      margin-top: 4px;
     }
 
     .add-tag-box select {
-      padding: 3px;
+      padding: 4px;
       background-color: #2b2b2b;
       color: #ffffff;
-      border: 1px solid #555555;
-      border-radius: 4px;
+      border: 2px solid #555555;
+      border-radius: 6px;
       font-weight: bold;
-      font-size: 0.75rem;
+      font-size: 0.9rem;
     }
 
     .add-tag-box input {
       flex: 1;
-      padding: 3px 6px;
-      font-size: 0.75rem;
-      border-radius: 4px;
-      border: 1px solid #555555;
+      padding: 4px 6px;
+      font-size: 0.9rem;
+      border-radius: 6px;
+      border: 2px solid #555555;
       background-color: #2b2b2b;
       color: #ffffff;
     }
 
     .btn-add {
-      padding: 3px 8px;
+      padding: 4px 10px;
       background-color: #3b82f6;
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
-      font-size: 0.75rem;
     }
 
     .tag-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 3px;
+      gap: 6px;
     }
 
     .tag-wrapper {
       display: inline-flex;
       align-items: center;
       background-color: #333333;
-      border: 1px solid #555555;
-      border-radius: 4px;
+      border: 2px solid #555555;
+      border-radius: 6px;
       overflow: hidden;
     }
 
@@ -167,8 +161,8 @@
     }
 
     .tag-btn-text {
-      padding: 3px 5px;
-      font-size: 0.75rem;
+      padding: 6px 8px;
+      font-size: 0.95rem;
       font-weight: bold;
       color: #ffffff;
       background: none;
@@ -177,8 +171,8 @@
     }
 
     .tag-del-btn {
-      padding: 3px 4px;
-      font-size: 0.65rem;
+      padding: 6px 6px;
+      font-size: 0.8rem;
       font-weight: bold;
       color: #ff6b6b;
       background: rgba(0, 0, 0, 0.2);
@@ -194,44 +188,42 @@
 
     .slider-group {
       background-color: #262626;
-      padding: 4px 6px;
-      border-radius: 4px;
+      padding: 6px 8px;
+      border-radius: 6px;
       border: 1px solid #444444;
     }
 
     .slider-header {
       display: flex;
       justify-content: space-between;
-      font-size: 0.75rem;
+      font-size: 0.9rem;
       font-weight: bold;
       margin-bottom: 2px;
     }
 
     .slider-input {
       width: 100%;
-      height: 14px;
+      height: 20px;
       cursor: pointer;
     }
 
-    /* 撮影ボタン群（パネル最下部に完全に独立固定・縮小なし） */
     .action-group {
-      flex-shrink: 0;
-      padding: 6px;
+      padding: 10px;
       background-color: #1a1a1a;
       border-top: 2px solid #333333;
       display: flex;
-      gap: 4px;
+      gap: 8px;
     }
 
     .btn-main {
       flex: 1;
-      padding: 8px 2px;
-      font-size: 0.9rem;
+      padding: 12px 8px;
+      font-size: 1.1rem;
       font-weight: bold;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
 
     .btn-shutter { background-color: #e63946; color: #ffffff; }
@@ -255,7 +247,7 @@
       </div>
     </div>
 
-    <!-- 右側：操作パネル -->
+    <!-- 右側：スリムな操作パネル -->
     <div class="control-panel">
       <div class="control-scroll-area">
         <div>
@@ -287,10 +279,10 @@
 
         <div class="slider-group">
           <div class="slider-header">
-            <span>文字サイズ調整</span>
-            <span id="fontSizeVal">24px</span>
+            <span>合成文字サイズ</span>
+            <span id="fontSizeVal">48px</span>
           </div>
-          <input type="range" id="fontSizeSlider" class="slider-input" min="14" max="60" value="24" oninput="updateFontSize(this.value)">
+          <input type="range" id="fontSizeSlider" class="slider-input" min="20" max="150" value="48" oninput="updateFontSize(this.value)">
         </div>
       </div>
 
@@ -303,9 +295,10 @@
   </div>
 
   <script>
+    // --- オフライン自動キャッシュ登録処理 ---
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'site-camera-v20';
+        const CACHE_NAME = 'site-camera-v7';
         self.addEventListener('install', (e) => {
           e.waitUntil(
             caches.open(CACHE_NAME).then((cache) => cache.addAll(['./', './index.html']))
@@ -334,12 +327,9 @@
     const resetBtn = document.getElementById('resetBtn');
     const liveOverlay = document.getElementById('liveOverlay');
 
-    let overlayFontSize = 24;
+    let overlayFontSize = 48;
 
-    const STORAGE_KEY = 'site_camera_tag_data_v1';
-    let savedTagData = localStorage.getItem(STORAGE_KEY);
-    
-    let tagData = savedTagData ? JSON.parse(savedTagData) : {
+    let tagData = {
       "部位": [
         "排水ます", "伸縮装置", "上流側", "終点側", "起点側", "添架物", 
         "舗装", "主桁", "排水管", "地覆", "A1橋台", "A2橋台", 
@@ -357,10 +347,6 @@
       "部位": ["主桁"],
       "状態": ["ひびわれ"]
     };
-
-    function saveTagsToLocalStorage() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tagData));
-    }
 
     function renderTags() {
       const buisContainer = document.getElementById('buisContainer');
@@ -423,7 +409,6 @@
     function deleteTag(category, name) {
       tagData[category] = tagData[category].filter(item => item !== name);
       selectedTags[category] = selectedTags[category].filter(item => item !== name);
-      saveTagsToLocalStorage();
       renderTags();
       updatePreview();
     }
@@ -442,7 +427,6 @@
         tagData[category].push(val);
         selectedTags[category].push(val);
         input.value = '';
-        saveTagsToLocalStorage();
         renderTags();
         updatePreview();
       } else {
@@ -468,6 +452,7 @@
       document.getElementById('liveDate').innerText = getNowString();
     }
 
+    // ① カメラ起動時に高画質（最低1280×960を要求）を指定
     function startCamera() {
       navigator.mediaDevices.getUserMedia({
         video: { 
@@ -489,6 +474,7 @@
       updatePreview();
     }
 
+    // ② 撮影処理：保存画像を強制的に最低 1280×960（4:3比率）の高画質で出力
     function takePhoto() {
       const vWidth = video.videoWidth || 1280;
       const vHeight = video.videoHeight || 720;
@@ -509,15 +495,17 @@
         cropY = (vHeight - cropHeight) / 2;
       }
 
+      // 高画質化（最低でも幅1280×高さ960、あるいはカメラ本来の解像度を維持）
       const outWidth = Math.max(cropWidth, 1280);
       const outHeight = Math.max(cropHeight, 960);
       canvas.width = outWidth;
       canvas.height = outHeight;
 
-      const displayWidth = video.clientWidth || 400;
-      const scale = cropWidth / displayWidth;
+      const baseWidth = 1280;
+      const scale = Math.max(canvas.width / baseWidth, 1.0); 
       const drawFontSize = overlayFontSize * scale;
 
+      // 切り出して高解像度キャンバスに描画
       ctx.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
 
       const siteTitle = document.getElementById('siteTitle').value;
@@ -525,12 +513,12 @@
       const tagText = allSelected.join(' / ');
       const dateStr = getNowString();
 
-      const padding = 15 * scale;
+      const padding = 20 * scale;
       const x = padding;
       let y = canvas.height - padding - (drawFontSize * 2.5);
 
       ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
-      ctx.fillRect(x - (8 * scale), y - drawFontSize, canvas.width * 0.75, drawFontSize * 3.5);
+      ctx.fillRect(x - (10 * scale), y - drawFontSize, canvas.width * 0.7, drawFontSize * 3.5);
 
       ctx.fillStyle = "#FFD700";
       ctx.font = `bold ${drawFontSize}px sans-serif`;
@@ -567,6 +555,7 @@
       const link = document.createElement('a');
       const timeStamp = new Date().toISOString().replace(/[-:T.]/g, "").slice(0, 14);
       link.download = `photo_${timeStamp}.jpg`;
+      // 画質設定を0.95（高画質）に設定
       link.href = canvas.toDataURL('image/jpeg', 0.95);
       link.click();
     }
