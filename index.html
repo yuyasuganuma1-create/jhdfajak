@@ -22,7 +22,7 @@
       flex-direction: column;
     }
 
-    /* 上部：カメラ表示エリア（縦持ちで使いやすい高さに確保） */
+    /* 上部：カメラ表示エリア */
     .camera-panel {
       flex: 1;
       position: relative;
@@ -62,7 +62,7 @@
     .live-tags { color: #ffffff; font-weight: bold; margin-top: 2px; line-height: 1.2; font-size: 0.8rem; }
     .live-date { color: #dddddd; font-size: 0.7em; margin-top: 2px; }
 
-    /* 下部：操作パネル（上下分割・スクロール対応） */
+    /* 下部：操作パネル */
     .control-panel {
       height: 45vh;
       background-color: #1a1a1a;
@@ -203,7 +203,6 @@
       cursor: pointer;
     }
 
-    /* 撮影ボタン群（常に最下部に独立固定・かぶり一切なし） */
     .action-group {
       padding: 8px 12px;
       background-color: #1a1a1a;
@@ -290,10 +289,9 @@
   </div>
 
   <script>
-    // --- オフライン自動キャッシュ登録処理 ---
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'site-camera-v9';
+        const CACHE_NAME = 'site-camera-v10';
         self.addEventListener('install', (e) => {
           e.waitUntil(
             caches.open(CACHE_NAME).then((cache) => cache.addAll(['./', './index.html']))
