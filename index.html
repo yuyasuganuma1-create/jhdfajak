@@ -64,7 +64,6 @@
 
     .live-title { color: #ffd700; font-weight: bold; line-height: 1.2; }
     .live-tags { color: #ffffff; font-weight: bold; margin-top: 6px; line-height: 1.3; }
-    .live-date { color: #dddddd; font-size: 0.85em; margin-top: 4px; }
 
     /* 右側：スリムな操作パネル */
     .control-panel {
@@ -243,7 +242,6 @@
       <div id="liveOverlay" class="live-overlay">
         <div id="liveTitle" class="live-title">第1工区 擁壁点検</div>
         <div id="liveTags" class="live-tags">主桁 / ひびわれ</div>
-        <div id="liveDate" class="live-date">---</div>
       </div>
     </div>
 
@@ -298,7 +296,7 @@
     // --- オフライン自動キャッシュ登録処理 ---
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'site-camera-v7';
+        const CACHE_NAME = 'site-camera-v9';
         self.addEventListener('install', (e) => {
           e.waitUntil(
             caches.open(CACHE_NAME).then((cache) => cache.addAll(['./', './index.html']))
@@ -434,11 +432,6 @@
       }
     }
 
-    function getNowString() {
-      const now = new Date();
-      return now.getFullYear() + '/' + (now.getMonth() + 1) + '/' + now.getDate() + ' ' + now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
-    }
-
     function updatePreview() {
       const title = document.getElementById('siteTitle').value || '';
       document.getElementById('liveTitle').innerText = title;
@@ -449,10 +442,9 @@
 
       document.getElementById('liveTags').innerText = tagText;
       document.getElementById('liveTags').style.fontSize = Math.round(overlayFontSize * 0.85) + 'px';
-      document.getElementById('liveDate').innerText = getNowString();
     }
 
-    // ① カメラ起動時に高画質（最低1280×960を要求）を指定
+    // カメラ起動時に高画質（最低1280×960を要求）を指定
     function startCamera() {
       navigator.mediaDevices.getUserMedia({
         video: { 
@@ -474,7 +466,7 @@
       updatePreview();
     }
 
-    // ② 撮影処理：保存画像を強制的に最低 1280×960（4:3比率）の高画質で出力
+    // 撮影処理：日時を省いた構成でCanvasに文字を合成
     function takePhoto() {
       const vWidth = video.videoWidth || 1280;
       const vHeight = video.videoHeight || 720;
@@ -495,7 +487,6 @@
         cropY = (vHeight - cropHeight) / 2;
       }
 
-      // 高画質化（最低でも幅1280×高さ960、あるいはカメラ本来の解像度を維持）
       const outWidth = Math.max(cropWidth, 1280);
       const outHeight = Math.max(cropHeight, 960);
       canvas.width = outWidth;
@@ -511,26 +502,24 @@
       const siteTitle = document.getElementById('siteTitle').value;
       const allSelected = [...selectedTags["部位"], ...selectedTags["状態"]];
       const tagText = allSelected.join(' / ');
-      const dateStr = getNowString();
 
       const padding = 20 * scale;
       const x = padding;
-      let y = canvas.height - padding - (drawFontSize * 2.5);
+      let y = canvas.height - padding - (drawFontSize * 1.5);
 
+      // 背景の黒幕ボックス（タイトルとタグの2行分）
       ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
-      ctx.fillRect(x - (10 * scale), y - drawFontSize, canvas.width * 0.7, drawFontSize * 3.5);
+      ctx.fillRect(x - (10 * scale), y - drawFontSize, canvas.width * 0.7, drawFontSize * 2.5);
 
+      // 現場タイトルの描画
       ctx.fillStyle = "#FFD700";
       ctx.font = `bold ${drawFontSize}px sans-serif`;
       ctx.fillText(siteTitle, x, y);
 
+      // タグの描画
       ctx.fillStyle = "#FFFFFF";
       ctx.font = `bold ${Math.round(drawFontSize * 0.85)}px sans-serif`;
       ctx.fillText(tagText, x, y + drawFontSize * 1.1);
-
-      ctx.fillStyle = "#DDDDDD";
-      ctx.font = `${Math.round(drawFontSize * 0.7)}px sans-serif`;
-      ctx.fillText(dateStr, x, y + drawFontSize * 2.1);
 
       video.style.display = 'none';
       liveOverlay.style.display = 'none';
@@ -555,7 +544,6 @@
       const link = document.createElement('a');
       const timeStamp = new Date().toISOString().replace(/[-:T.]/g, "").slice(0, 14);
       link.download = `photo_${timeStamp}.jpg`;
-      // 画質設定を0.95（高画質）に設定
       link.href = canvas.toDataURL('image/jpeg', 0.95);
       link.click();
     }
@@ -564,7 +552,6 @@
       renderTags();
       startCamera();
       updatePreview();
-      setInterval(() => { document.getElementById('liveDate').innerText = getNowString(); }, 10000);
     };
   </script>
 </body>
