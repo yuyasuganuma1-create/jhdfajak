@@ -55,7 +55,7 @@
       left: 20px;
       background-color: rgba(0, 0, 0, 0.75);
       border-left: 6px solid #ffd700;
-      padding: 12px 18px;
+      padding: 10px 14px;
       border-radius: 6px;
       pointer-events: none;
       max-width: 80%;
@@ -63,7 +63,7 @@
     }
 
     .live-title { color: #ffd700; font-weight: bold; line-height: 1.2; }
-    .live-tags { color: #ffffff; font-weight: bold; margin-top: 6px; line-height: 1.3; }
+    .live-tags { color: #ffffff; font-weight: bold; margin-top: 4px; line-height: 1.3; }
 
     /* 右側：スリムな操作パネル */
     .control-panel {
@@ -228,12 +228,29 @@
     .btn-shutter { background-color: #e63946; color: #ffffff; }
     .btn-save { background-color: #2a9d8f; color: #ffffff; }
     .btn-reset { background-color: #6c757d; color: #ffffff; }
+
+    /* スマホ（縦画面）対応：上下分割レイアウト */
+    @media (max-width: 768px) {
+      .app-container {
+        flex-direction: column;
+      }
+      .camera-panel {
+        flex: 1;
+        height: 50vh;
+      }
+      .control-panel {
+        width: 100vw;
+        height: 50vh;
+        border-left: none;
+        border-top: 2px solid #333333;
+      }
+    }
   </style>
 </head>
 <body>
 
   <div class="app-container">
-    <!-- 左側：カメラ表示エリア -->
+    <!-- 左側（または上部）：カメラ表示エリア -->
     <div class="camera-panel">
       <video id="webcam" autoplay playsinline muted></video>
       <canvas id="capturedCanvas"></canvas>
@@ -245,7 +262,7 @@
       </div>
     </div>
 
-    <!-- 右側：スリムな操作パネル -->
+    <!-- 右側（または下部）：スリムな操作パネル -->
     <div class="control-panel">
       <div class="control-scroll-area">
         <div>
@@ -263,6 +280,7 @@
           <div id="jotaisContainer" class="tag-group"></div>
         </div>
 
+        <!-- 属性の種類選択・追加エリア -->
         <div>
           <div class="section-title">＋ 属性タグを追加</div>
           <div class="add-tag-box">
@@ -296,7 +314,7 @@
     // --- オフライン自動キャッシュ登録処理 ---
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'site-camera-v9';
+        const CACHE_NAME = 'site-camera-v11';
         self.addEventListener('install', (e) => {
           e.waitUntil(
             caches.open(CACHE_NAME).then((cache) => cache.addAll(['./', './index.html']))
@@ -466,7 +484,7 @@
       updatePreview();
     }
 
-    // 撮影処理：日時を省いた構成でCanvasに文字を合成
+    // 撮影処理（日時を含めず、タイトルとタグのみを描画）
     function takePhoto() {
       const vWidth = video.videoWidth || 1280;
       const vHeight = video.videoHeight || 720;
@@ -507,7 +525,7 @@
       const x = padding;
       let y = canvas.height - padding - (drawFontSize * 1.5);
 
-      // 背景の黒幕ボックス（タイトルとタグの2行分）
+      // 背景の黒幕ボックス（タイトルとタグの2行分のみ）
       ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
       ctx.fillRect(x - (10 * scale), y - drawFontSize, canvas.width * 0.7, drawFontSize * 2.5);
 
