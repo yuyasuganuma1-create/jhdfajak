@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#000000">
-  <title>高画質 現場撮影用Webアプリ</title>
+  <title>現場撮影用Webアプリ</title>
   <style>
     * {
       box-sizing: border-box;
@@ -38,8 +38,23 @@
       overflow: hidden;
     }
 
-    /* ★ 修正：object-fitをcoverにすることで、撮影前後の画角・サイズ感を一致させる */
+    /* ★ 撮影前と撮影後でサイズが狂わないよう、4:3の枠を完全に固定 */
+    .camera-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      max-width: calc(100vh * 4 / 3);
+      max-height: calc(100vw * 3 / 4);
+      aspect-ratio: 4 / 3;
+      background-color: #000000;
+      overflow: hidden;
+    }
+
+    /* ★ videoとcanvasの表示方法を完全に一致させる */
     video, canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -249,17 +264,19 @@
   <div class="app-container">
     <!-- 左側：カメラ表示エリア -->
     <div class="camera-panel">
-      <video id="webcam" autoplay playsinline muted></video>
-      <canvas id="capturedCanvas"></canvas>
+      <div class="camera-wrapper">
+        <video id="webcam" autoplay playsinline muted></video>
+        <canvas id="capturedCanvas"></canvas>
 
-      <!-- 撮影前のリアルタイム表示 -->
-      <div id="liveOverlay" class="live-overlay">
-        <div id="liveTitle" class="live-title">第1工区 擁壁点検</div>
-        <div id="liveTags" class="live-tags">主桁 / ひびわれ</div>
+        <!-- 撮影前のリアルタイム表示 -->
+        <div id="liveOverlay" class="live-overlay">
+          <div id="liveTitle" class="live-title">第1工区 擁壁点検</div>
+          <div id="liveTags" class="live-tags">主桁 / ひびわれ</div>
+        </div>
       </div>
     </div>
 
-    <!-- 右側：スリムな操作パネル -->
+    <!-- 右側：操作パネル -->
     <div class="control-panel">
       <div class="control-scroll-area">
         <div>
@@ -434,7 +451,6 @@
       document.getElementById('liveTags').style.fontSize = Math.round(overlayFontSize * 0.85) + 'px';
     }
 
-    // カメラ起動：4:3アスペクト比 ＆ 最大解像度
     function startCamera() {
       navigator.mediaDevices.getUserMedia({
         video: { 
@@ -459,7 +475,6 @@
       updatePreview();
     }
 
-    // 文字描画共通処理
     function drawOverlayText(scale, drawFontSize) {
       const siteTitle = document.getElementById('siteTitle').value;
       const allSelected = [...selectedTags["部位"], ...selectedTags["状態"]];
@@ -481,7 +496,6 @@
       ctx.fillText(tagText, x, y + drawFontSize * 1.1);
     }
 
-    // 撮影処理：静止画API (ImageCapture) に対応
     async function takePhoto() {
       const stream = video.srcObject;
       if (!stream) return;
