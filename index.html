@@ -4,7 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#000000">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <title>現場撮影用Webアプリ</title>
+  <!-- ホーム画面に追加した際、最初から自動で本物の横画面で起動させる設定 -->
+  <link rel="manifest" href='data:application/manifest+json,{"name":"現場撮影アプリ","short_name":"現場撮影","display":"fullscreen","orientation":"landscape","start_url":"./index.html","background_color":"#000000","theme_color":"#000000"}'>
   <style>
     * {
       box-sizing: border-box;
@@ -15,42 +19,28 @@
     html, body {
       background-color: #000000;
       color: #ffffff;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
       position: fixed;
       top: 0;
       left: 0;
     }
-    
-    /* スマホを縦(Portrait)で持っているときは、画面全体を90度回転させて横画面レイアウトとして強制表示 */
-    @media screen and (orientation: portrait) {
-      body {
-        width: 100vh;
-        height: 100vw;
-        transform: rotate(90deg);
-        transform-origin: top left;
-        position: absolute;
-        top: 0;
-        left: 100vw;
-      }
-    }
-    /* スマホを横(Landscape)で持っているときはそのまま */
-    @media screen and (orientation: landscape) {
-      body {
-        width: 100vw;
-        height: 100vh;
-        transform: none;
-        position: static;
-      }
-    }
 
-    /* 横持ち専用：左にカメラ、右に操作パネル */
+    /* 画面全体のコンテナ（JavaScriptで常に横長の幅・高さを正確にセット） */
     .app-container {
       display: flex;
       flex-direction: row;
-      width: 100vw;
-      height: 100vh;
+      background-color: #000000;
+    }
+
+    /* スマホが縦向き判定（回転ロック中など）の時は、コンテナごと横向きに回転させて画面全体にフィット */
+    body.force-landscape .app-container {
+      position: absolute;
+      top: 0;
+      left: 100%;
+      transform: rotate(90deg);
+      transform-origin: top left;
     }
 
     /* 左側：カメラ表示エリア */
@@ -69,9 +59,6 @@
     /* 4:3固定フレーム */
     .preview-frame {
       position: relative;
-      aspect-ratio: 4 / 3;
-      max-width: 100%;
-      max-height: 100%;
       background-color: #111111;
       overflow: hidden;
       display: flex;
@@ -80,8 +67,10 @@
     }
 
     video {
-      width: 100%;
-      height: 100%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       object-fit: cover;
     }
 
@@ -89,6 +78,7 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
+      z-index: 5;
     }
 
     #capturedCanvas {
@@ -121,6 +111,7 @@
       flex-direction: column;
       height: 100%;
       border-left: 2px solid #333333;
+      z-index: 20;
     }
 
     .control-scroll-area {
@@ -143,6 +134,17 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+    }
+
+    .btn-fullscreen {
+      background-color: #333333;
+      color: #ffd700;
+      border: 1px solid #ffd700;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-size: 0.65rem;
+      font-weight: bold;
+      cursor: pointer;
     }
 
     .input-box {
@@ -334,7 +336,10 @@
         <div>
           <div class="section-title">
             <span>現場タイトル</span>
-            <span id="saveMsg" class="save-status">✓ 保存済</span>
+            <div>
+              <span id="saveMsg" class="save-status">✓ 保存済</span>
+              <button class="btn-fullscreen" onclick="lockNativeLandscape()">⛶ 全画面横固定</button>
+            </div>
           </div>
           <input type="text" id="siteTitle" class="input-box" value="第1工区 擁壁点検" placeholder="タイトルを入力" oninput="onTitleInput()">
         </div>
@@ -383,7 +388,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'site-camera-v26';
+        const CACHE_NAME = 'site-camera-v27';
         self.addEventListener('install', (e) => {
           e.waitUntil(
             caches.open(CACHE_NAME).then((cache) => cache.addAll(['./', './index.html']))
@@ -408,6 +413,7 @@
       navigator.serviceWorker.register(swUrl).catch(err => console.log('SW register failed:', err));
     }
 
+    const appContainer = document.getElementById('appContainer');
     const video = document.getElementById('webcam');
     const canvas = document.getElementById('capturedCanvas');
     const ctx = canvas.getContext('2d');
@@ -422,6 +428,7 @@
     let currentStream = null;
     let isPhotoTaken = false;
     let saveMsgTimer = null;
+    let isForceLandscape = false; // 縦画面ロック中かどうか
 
     const STORAGE_KEY_CUSTOM_TAGS = 'site_camera_custom_tags_v1';
     const STORAGE_KEY_SELECTED = 'site_camera_selected_tags_v1';
@@ -471,6 +478,30 @@
       selectedTags = { "部位": ["主桁"], "状態": ["ひびわれ"] };
     }
 
+    // Android等で画面の自動回転がOFFでも、OSレベルで本物の横画面に切り替える機能
+    async function lockNativeLandscape() {
+      try {
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        }
+        if (screen.orientation && screen.orientation.lock) {
+          await screen.orientation.lock('landscape');
+        }
+      } catch (e) {
+        console.log('Orientation lock skipped:', e);
+      }
+      setTimeout(adjustLayout, 150);
+    }
+
+    // 画面の最初のタッチ時にも自動でネイティブ横画面化を試みる（入力欄タップ時はキーボードを邪魔しないよう除外）
+    document.body.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') {
+        if (window.innerHeight > window.innerWidth && !document.fullscreenElement) {
+          lockNativeLandscape();
+        }
+      }
+    }, { once: true });
+
     function showSaveIndicator() {
       saveMsg.style.opacity = '1';
       if (saveMsgTimer) clearTimeout(saveMsgTimer);
@@ -509,21 +540,54 @@
       }
     }
 
-    function adjustLayoutHeight() {
+    // 縦画面ロック時でも横画面として全画面ぴったりに配置し、カメラの向きも合わせる処理
+    function adjustLayout() {
+      const winW = window.innerWidth;
+      const winH = window.innerHeight;
+
+      if (winH > winW) {
+        // スマホが縦画面判定のままの場合：幅と高さを入れ替えて90度回転
+        isForceLandscape = true;
+        document.body.classList.add('force-landscape');
+        appContainer.style.width = winH + 'px';
+        appContainer.style.height = winW + 'px';
+      } else {
+        // 本物の横画面になっている場合
+        isForceLandscape = false;
+        document.body.classList.remove('force-landscape');
+        appContainer.style.width = winW + 'px';
+        appContainer.style.height = winH + 'px';
+      }
+
       const panel = document.getElementById('cameraPanel');
       const pw = panel.clientWidth - 8;
       const ph = panel.clientHeight - 8;
+      let fw, fh;
       if (pw / ph > 4 / 3) {
-        previewFrame.style.height = ph + 'px';
-        previewFrame.style.width = Math.round(ph * 4 / 3) + 'px';
+        fh = ph;
+        fw = Math.round(ph * 4 / 3);
       } else {
-        previewFrame.style.width = pw + 'px';
-        previewFrame.style.height = Math.round(pw * 3 / 4) + 'px';
+        fw = pw;
+        fh = Math.round(pw * 3 / 4);
+      }
+      previewFrame.style.width = fw + 'px';
+      previewFrame.style.height = fh + 'px';
+
+      // 強制横回転モード時は、スマホを横に構えた向きとカメラ映像の天地が一致するようにビデオを逆回転補正
+      if (isForceLandscape) {
+        video.style.width = fh + 'px';
+        video.style.height = fw + 'px';
+        video.style.transform = 'translate(-50%, -50%) rotate(-90deg)';
+      } else {
+        video.style.width = '100%';
+        video.style.height = '100%';
+        video.style.transform = 'translate(-50%, -50%)';
       }
     }
-    window.addEventListener('resize', adjustLayoutHeight);
+
+    window.addEventListener('resize', adjustLayout);
     window.addEventListener('orientationchange', () => {
-      setTimeout(adjustLayoutHeight, 200);
+      setTimeout(adjustLayout, 200);
     });
 
     function renderCategoryTags(category, containerId) {
@@ -653,7 +717,10 @@
       }).then(stream => {
         currentStream = stream;
         video.srcObject = stream;
-        video.play().catch(e => console.log('Video play error:', e));
+        video.onloadedmetadata = () => {
+          adjustLayout();
+          video.play().catch(e => console.log('Video play error:', e));
+        };
       }).catch(err => {
         console.log("Camera start error:", err);
       });
@@ -661,7 +728,7 @@
 
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
-        adjustLayoutHeight();
+        adjustLayout();
         if (!isPhotoTaken) {
           startCamera();
         } else {
@@ -674,7 +741,7 @@
 
     window.addEventListener('pageshow', (e) => {
       if (e.persisted) {
-        adjustLayoutHeight();
+        adjustLayout();
         resetCamera();
       }
     });
@@ -689,8 +756,28 @@
 
     function takePhoto() {
       isPhotoTaken = true;
-      const vWidth = video.videoWidth || 1280;
-      const vHeight = video.videoHeight || 960;
+      const rawW = video.videoWidth || 1280;
+      const rawH = video.videoHeight || 960;
+
+      // ソース映像を一旦オフスクリーンCanvasに正しい向き（横持ち時の天地）で描画
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
+
+      if (isForceLandscape && rawH > rawW) {
+        // 縦ロック中にスマホを横に倒して撮っている場合、映像を反時計回りに90度回転させて正しい横向きの写真にする
+        tempCanvas.width = rawH;
+        tempCanvas.height = rawW;
+        tempCtx.translate(0, rawW);
+        tempCtx.rotate(-Math.PI / 2);
+        tempCtx.drawImage(video, 0, 0, rawW, rawH);
+      } else {
+        tempCanvas.width = rawW;
+        tempCanvas.height = rawH;
+        tempCtx.drawImage(video, 0, 0, rawW, rawH);
+      }
+
+      const vWidth = tempCanvas.width;
+      const vHeight = tempCanvas.height;
 
       let cropWidth, cropHeight, cropX, cropY;
       const targetRatio = 4 / 3;
@@ -713,10 +800,10 @@
       canvas.width = outWidth;
       canvas.height = outHeight;
 
-      const frameWidth = previewFrame.clientWidth || 400;
+      const frameWidth = parseFloat(previewFrame.style.width) || 400;
       const scale = outWidth / frameWidth;
 
-      ctx.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, outWidth, outHeight);
+      ctx.drawImage(tempCanvas, cropX, cropY, cropWidth, cropHeight, 0, 0, outWidth, outHeight);
 
       const siteTitle = siteTitleInput.value || '';
       const allSelected = [...selectedTags["部位"], ...selectedTags["状態"]];
@@ -804,7 +891,7 @@
     }
 
     window.onload = () => {
-      adjustLayoutHeight();
+      adjustLayout();
 
       const savedTitle = localStorage.getItem(STORAGE_KEY_TITLE);
       if (savedTitle !== null) {
